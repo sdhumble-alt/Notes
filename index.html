@@ -149,7 +149,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.19.0</div>
+        <div class="toolbar-ver">V 1.0.0</div>
       </div>
     </header>
 
@@ -638,7 +638,6 @@
       if (isUserAction && state.elements.length > 0 && (newW !== oldW || newH !== oldH)) {
           const choice = await showScaleModal();
           if (choice === 'cancel') {
-              // Revert UI to previous
               document.getElementById('paperSize').value = lastPaperSettings.size;
               document.getElementById('paperOrientation').value = lastPaperSettings.orient;
               document.getElementById('customW').value = lastPaperSettings.customW;
@@ -748,7 +747,7 @@
         state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Non-Examples', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
         const cw = 220, ch = 80;
         let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.bold = true; cFormat.valign = 'middle';
-        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', text: 'Vocabulary Word', bgStyle: 'none', showBorder: true, borderWidth: 2, format: cFormat });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', text: '\nVocabulary Word', bgStyle: 'none', showBorder: true, borderWidth: 2, format: cFormat });
       }
       selectElement(null); drawCanvas(); pushHistory();
     }
