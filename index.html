@@ -147,7 +147,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.1.0 &mdash; 2026-09-20</div>
+        <div class="toolbar-ver">V 1.3.0 &mdash; 2026-09-20</div>
       </div>
     </header>
 
@@ -467,7 +467,7 @@
     
     // Unicode Maps for Sub/Superscript
     const SUPER_MAP = { '0':'⁰', '1':'¹', '2':'²', '3':'³', '4':'⁴', '5':'⁵', '6':'⁶', '7':'⁷', '8':'⁸', '9':'⁹', '+':'⁺', '-':'⁻', '=':'⁼', '(':'⁽', ')':'⁾', 'a':'ᵃ', 'b':'ᵇ', 'c':'ᶜ', 'd':'ᵈ', 'e':'ᵉ', 'm':'ᵐ', 'n':'ⁿ', 'p':'ᵖ', 'r':'ʳ', 's':'ˢ', 't':'ᵗ', 'x':'ˣ', 'y':'ʸ', 'z':'ᶻ' };
-    const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ₙ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
+    const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ⁿ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
 
     const REVERSE_SUPER_MAP = {}; for(let k in SUPER_MAP) REVERSE_SUPER_MAP[SUPER_MAP[k]] = k;
     const REVERSE_SUB_MAP = {}; for(let k in SUB_MAP) REVERSE_SUB_MAP[SUB_MAP[k]] = k;
@@ -791,7 +791,7 @@
         state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', labelAlign: 'left', text: '', bgStyle: 'none', lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, format: cFormat });
       } else if (type === 'lab') {
         
-        // Dynamically scaled Lab Protocol layout
+        // Dynamically scaled Lab Protocol layout based on 6.25" x 8.5" proportion (safe canvas: 552 x 768)
         const col1W = safeW * (396/552); 
         const col2W = safeW * (135/552); 
         const leftX = m + (safeW * (3/552));
@@ -1322,7 +1322,7 @@
            const hTargets = [oT, oB, oCY];
            for (const t of hTargets) {
              if (Math.abs(bottomEdge - t) < snapDist) { snapH = t - el.y; state.activeGuides.push({type: 'h', pos: t}); snappedH = true; break; }
-             if (Math.abs(centerY - t) < snapDist) { snapH = (t - el.y) * 2; state.activeGuides.push({type: 'h', pos: t}); snappedH = true; break; }
+             if (Math.abs(centerY - t) * 2; state.activeGuides.push({type: 'h', pos: t}); snappedH = true; break; }
            }
         }
         if (snappedW && snappedH) break;
