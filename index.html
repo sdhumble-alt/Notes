@@ -109,7 +109,6 @@
 
     .stage-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
-    .copy-feedback { font-size: 9.5pt; color: var(--btn-green-bg); font-weight: 600; display: none; align-items: center; gap: 4px; }
 
     /* Formatting Toolbar */
     .format-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
@@ -149,7 +148,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.0.0</div>
+        <div class="toolbar-ver">V 1.2.0</div>
       </div>
     </header>
 
@@ -277,12 +276,25 @@
                   <input type="text" id="propLabel" oninput="updateSelectedElement()" onchange="pushHistory()">
                 </div>
                 <div class="field-row">
+                  <label for="propLabelAlign">Label Alignment</label>
+                  <select id="propLabelAlign" onchange="updateSelectedElement(); pushHistory();">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div class="field-row">
                   <label for="propBgStyle">Internal Pattern</label>
                   <select id="propBgStyle" onchange="updateSelectedElement(); pushHistory();">
                     <option value="none">Blank (None)</option>
                     <option value="lines">Writing Lines</option>
                     <option value="grid">Graphing Grid</option>
                   </select>
+                </div>
+                <!-- Dynamic Spacing Input for Patterns -->
+                <div class="field-row" id="bgSizeRow" style="display: none; margin-top: 4px;">
+                  <label for="propBgSize">Line/Grid Spacing (px)</label>
+                  <input type="number" id="propBgSize" min="5" max="200" onchange="updateSelectedElement(); localStorage.setItem('humbleNoteBgSize', this.value); pushHistory();">
                 </div>
                 <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
               </div>
@@ -445,6 +457,10 @@
     const SUPER_MAP = { '0':'⁰', '1':'¹', '2':'²', '3':'³', '4':'⁴', '5':'⁵', '6':'⁶', '7':'⁷', '8':'⁸', '9':'⁹', '+':'⁺', '-':'⁻', '=':'⁼', '(':'⁽', ')':'⁾', 'a':'ᵃ', 'b':'ᵇ', 'c':'ᶜ', 'd':'ᵈ', 'e':'ᵉ', 'm':'ᵐ', 'n':'ⁿ', 'p':'ᵖ', 'r':'ʳ', 's':'ˢ', 't':'ᵗ', 'x':'ˣ', 'y':'ʸ', 'z':'ᶻ' };
     const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ₙ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
 
+    function getDefaultBgSize() {
+      return parseInt(localStorage.getItem('humbleNoteBgSize')) || 30;
+    }
+
     let state = {
       elements: [], 
       selectedId: null,
@@ -520,6 +536,9 @@
         if (el.type === 'table' && !el.cells) {
            el.cells = buildCells(null, el.rows, el.cols);
            el.cells[0][0].text = el.text || "";
+        }
+        if (el.type === 'box' && !el.bgSize) {
+           el.bgSize = getDefaultBgSize();
         }
       });
 
@@ -637,6 +656,7 @@
 
       if (isUserAction && state.elements.length > 0 && (newW !== oldW || newH !== oldH)) {
           const choice = await showScaleModal();
+          
           if (choice === 'cancel') {
               document.getElementById('paperSize').value = lastPaperSettings.size;
               document.getElementById('paperOrientation').value = lastPaperSettings.orient;
@@ -644,7 +664,7 @@
               document.getElementById('customH').value = lastPaperSettings.customH;
               if (lastPaperSettings.size === 'custom') document.getElementById('customSizeRow').classList.remove('hidden');
               else document.getElementById('customSizeRow').classList.add('hidden');
-              return;
+              return; 
           }
           
           if (choice === 'yes') {
@@ -656,7 +676,7 @@
                   if (el.format && el.format.size) el.format.size = Math.max(8, Math.round(el.format.size * scaleFont));
                   if (el.type === 'table' && el.cells) {
                       el.cells.forEach(row => row.forEach(c => {
-                          if (c.format && c.format.size) c.format.size = Math.max(8, Math.round(c.format.size * scaleFont));
+                          if (c && c.format && c.format.size) c.format.size = Math.max(8, Math.round(c.format.size * scaleFont));
                       }));
                   }
               });
@@ -734,27 +754,28 @@
       const m = 0.25 * DPI; 
       const safeW = (state.paper.widthInches * DPI) - (m*2);
       const safeH = (state.paper.heightInches * DPI) - (m*2);
+      const bgS = getDefaultBgSize();
 
       if (type === 'cornell') {
-        state.elements.push({ id: generateId(), type: 'box', x: m, y: m, w: safeW, h: safeH * 0.1, label: 'Topic / Objective', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
-        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH * 0.1 + 15, w: safeW * 0.3 - 5, h: safeH * 0.7 - 30, label: 'Cues / Questions', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
-        state.elements.push({ id: generateId(), type: 'box', x: m + safeW * 0.3 + 5, y: m + safeH * 0.1 + 15, w: safeW * 0.7 - 5, h: safeH * 0.7 - 30, label: 'Notes', text: '', bgStyle: 'lines', showBorder: true, borderWidth: 2, format: defaultFormat() });
-        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH * 0.8, w: safeW, h: safeH * 0.2, label: 'Summary', text: '', bgStyle: 'lines', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m, w: safeW, h: safeH * 0.1, label: 'Topic / Objective', labelAlign: 'left', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH * 0.1 + 15, w: safeW * 0.3 - 5, h: safeH * 0.7 - 30, label: 'Cues / Questions', labelAlign: 'left', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW * 0.3 + 5, y: m + safeH * 0.1 + 15, w: safeW * 0.7 - 5, h: safeH * 0.7 - 30, label: 'Notes', labelAlign: 'left', text: '', bgStyle: 'lines', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH * 0.8, w: safeW, h: safeH * 0.2, label: 'Summary', labelAlign: 'left', text: '', bgStyle: 'lines', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
       } else if (type === 'frayer') {
-        state.elements.push({ id: generateId(), type: 'box', x: m, y: m, w: safeW/2, h: safeH/2, label: 'Definition', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
-        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m, w: safeW/2, h: safeH/2, label: 'Characteristics', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
-        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Examples', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
-        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Non-Examples', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m, w: safeW/2, h: safeH/2, label: 'Definition', labelAlign: 'left', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m, w: safeW/2, h: safeH/2, label: 'Characteristics', labelAlign: 'right', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Examples', labelAlign: 'left', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Non-Examples', labelAlign: 'right', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: defaultFormat() });
         const cw = 220, ch = 80;
         let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.bold = true; cFormat.valign = 'middle';
-        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', text: '\nVocabulary Word', bgStyle: 'none', showBorder: true, borderWidth: 2, format: cFormat });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', labelAlign: 'left', text: '', bgStyle: 'none', bgSize: bgS, showBorder: true, borderWidth: 2, format: cFormat });
       }
       selectElement(null); drawCanvas(); pushHistory();
     }
 
     function addElement(type) {
       const el = { id: generateId(), type: type, x: 100, y: 100, format: defaultFormat(), showBorder: true, borderWidth: 2 };
-      if (type === 'box') { el.w = 300; el.h = 150; el.label = ""; el.bgStyle = "none"; el.text = ""; } 
+      if (type === 'box') { el.w = 300; el.h = 150; el.label = ""; el.labelAlign = "left"; el.bgStyle = "none"; el.bgSize = getDefaultBgSize(); el.text = ""; } 
       else if (type === 'text') { el.w = 300; el.h = 30; el.showBorder = false; el.text = ""; }
       else if (type === 'table') { el.w = 300; el.h = 150; el.rows = 3; el.cols = 3; el.cells = buildCells(null, 3, 3); }
       state.elements.push(el); state.selectedCell = {r:0, c:0}; selectElement(el.id); drawCanvas(); pushHistory();
@@ -767,7 +788,7 @@
       const y = (state.paper.heightInches * DPI) - m - h;
       
       let pFormat = defaultFormat(); pFormat.size = 9; pFormat.align = 'center'; pFormat.valign = 'middle';
-      const el = { id: generateId(), type: 'box', x: x, y: y, w: w, h: h, text: "Pg. ", label: "", bgStyle: "none", showBorder: true, borderWidth: 1, format: pFormat };
+      const el = { id: generateId(), type: 'box', x: x, y: y, w: w, h: h, text: "Pg. ", label: "", labelAlign: "left", bgStyle: "none", bgSize: getDefaultBgSize(), showBorder: true, borderWidth: 1, format: pFormat };
       state.elements.push(el); selectElement(el.id); drawCanvas(); pushHistory();
     }
 
@@ -917,7 +938,10 @@
       if (el.type === 'box') {
         boxP.classList.remove('hidden');
         document.getElementById('propLabel').value = el.label || "";
+        document.getElementById('propLabelAlign').value = el.labelAlign || "left";
         document.getElementById('propBgStyle').value = el.bgStyle || "none";
+        document.getElementById('propBgSize').value = el.bgSize || getDefaultBgSize();
+        document.getElementById('bgSizeRow').style.display = (el.bgStyle === 'lines' || el.bgStyle === 'grid') ? 'flex' : 'none';
       } else if (el.type === 'table') {
         tblP.classList.remove('hidden');
         tblCellUI.classList.remove('hidden');
@@ -960,7 +984,10 @@
       
       if (el.type === 'box') {
         el.label = document.getElementById('propLabel').value;
+        el.labelAlign = document.getElementById('propLabelAlign').value;
         el.bgStyle = document.getElementById('propBgStyle').value;
+        el.bgSize = parseInt(document.getElementById('propBgSize').value) || getDefaultBgSize();
+        document.getElementById('bgSizeRow').style.display = (el.bgStyle === 'lines' || el.bgStyle === 'grid') ? 'flex' : 'none';
       } else if (el.type === 'table') {
         const newRows = Math.max(1, parseInt(document.getElementById('propRows').value) || 1);
         const newCols = Math.max(1, parseInt(document.getElementById('propCols').value) || 1);
@@ -1396,7 +1423,7 @@
           ctx.fillStyle = '#ffffff'; ctx.fillRect(el.x, el.y, el.w, el.h);
           if (el.bgStyle === 'lines' || el.bgStyle === 'grid') {
             ctx.strokeStyle = (el.bgStyle === 'grid') ? '#e2e8f0' : '#cbd5e1'; ctx.lineWidth = 1; ctx.beginPath();
-            const step = el.bgStyle === 'grid' ? 20 : 30;
+            const step = el.bgSize || getDefaultBgSize();
             for (let ly = el.y + step; ly < el.y + el.h; ly += step) { ctx.moveTo(el.x, ly); ctx.lineTo(el.x + el.w, ly); }
             if (el.bgStyle === 'grid') { for (let lx = el.x + step; lx < el.x + el.w; lx += step) { ctx.moveTo(lx, el.y); ctx.lineTo(lx, el.y + el.h); } }
             ctx.stroke();
@@ -1405,7 +1432,13 @@
 
           if (el.label) {
             ctx.font = `bold 14px ${gFont}`; const pad = 8; const textW = ctx.measureText(el.label).width;
-            const labelW = textW + (pad * 2), labelH = 22, labelX = el.x + 5, labelY = el.y - (labelH / 2);
+            const labelW = textW + (pad * 2), labelH = 22;
+            let labelX = el.x + 5;
+            
+            if (el.labelAlign === 'center') labelX = el.x + (el.w / 2) - (labelW / 2);
+            else if (el.labelAlign === 'right') labelX = el.x + el.w - labelW - 5;
+            
+            const labelY = el.y - (labelH / 2);
             ctx.fillStyle = '#1e2a3a'; ctx.fillRect(labelX, labelY, labelW, labelH);
             ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle'; ctx.fillText(el.label, labelX + pad, el.y); ctx.textBaseline = 'top'; 
           }
