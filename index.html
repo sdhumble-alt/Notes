@@ -102,7 +102,6 @@
 
     .stage-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
-    .copy-feedback { font-size: 9.5pt; color: var(--btn-green-bg); font-weight: 600; display: none; align-items: center; gap: 4px; }
 
     /* Formatting Toolbar */
     .format-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
@@ -142,7 +141,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.17.0</div>
+        <div class="toolbar-ver">V 1.18.0</div>
       </div>
     </header>
 
@@ -308,6 +307,7 @@
                   <button class="fmt-btn" id="fmtS" onclick="toggleFormat('strike')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
                   <div class="fmt-divider"></div>
                   
+                  <!-- Special Characters Dropdowns -->
                   <div class="dropdown-custom">
                     <button class="fmt-btn" onclick="toggleDropdown('mathMenu')" title="Math Symbols"><i class="ti ti-math"></i></button>
                     <div class="dropdown-menu" id="mathMenu">
@@ -389,8 +389,6 @@
           <div class="stage-header">
             <div class="export-tray">
               <button class="btn btn-primary" onclick="downloadPDF()"><i class="ti ti-file-type-pdf"></i> Download PDF</button>
-              <button class="btn btn-green" id="copyBtn" onclick="copyPNG()"><i class="ti ti-copy"></i> Copy to Clipboard</button>
-              <span class="copy-feedback" id="copyFeedback"><i class="ti ti-check"></i> Copied!</span>
             </div>
             <div style="display: flex; gap: 4px; align-items: center;">
               <button class="btn btn-secondary" onclick="setZoom(state.zoom - 0.1)" title="Zoom Out"><i class="ti ti-minus"></i></button>
@@ -429,6 +427,8 @@
       isExporting: false,
       activeGuides: [] 
     };
+
+    let clipboardData = null;
 
     // --- History Engine ---
     let historyStack = [];
@@ -643,6 +643,16 @@
       return newCells;
     }
 
+    function cloneElementData(el) {
+       const clone = JSON.parse(JSON.stringify(el, (k,v) => k === 'img' ? undefined : v));
+       if (el.img) {
+           const newImg = new Image();
+           newImg.src = el.img.src;
+           clone.img = newImg;
+       }
+       return clone;
+    }
+
     function loadTemplate(type) {
       state.elements = [];
       const m = 0.25 * DPI; 
@@ -706,7 +716,7 @@
 
     function clearCanvas() { state.elements = []; selectElement(null); drawCanvas(); pushHistory(); }
 
-    // --- Textbox Auto-List Keydown ---
+    // --- Keyboard Shortcuts & Auto-List Engine ---
     document.getElementById('propText').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         const ta = this;
@@ -751,10 +761,43 @@
     });
 
     document.addEventListener('keydown', function(e) {
+      const tag = document.activeElement.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+      const isMac = navigator.userAgent.indexOf('Mac OS X') != -1;
+      const cmdCtrl = isMac ? e.metaKey : e.ctrlKey;
+
       if (e.key === 'Backspace' || e.key === 'Delete') {
-        const tag = document.activeElement.tagName.toLowerCase();
-        if (tag === 'input' || tag === 'textarea') return;
         if (state.selectedId) deleteSelected();
+      }
+      else if (cmdCtrl && (e.key === 'c' || e.key === 'C')) {
+        if (state.selectedId) {
+          const el = state.elements.find(e => e.id === state.selectedId);
+          if (el) clipboardData = cloneElementData(el);
+        }
+      }
+      else if (cmdCtrl && (e.key === 'x' || e.key === 'X')) {
+        if (state.selectedId) {
+          const el = state.elements.find(e => e.id === state.selectedId);
+          if (el) {
+            clipboardData = cloneElementData(el);
+            deleteSelected();
+          }
+        }
+      }
+      else if (cmdCtrl && (e.key === 'v' || e.key === 'V')) {
+        if (clipboardData) {
+          const newEl = cloneElementData(clipboardData);
+          newEl.id = generateId();
+          newEl.x += 20;
+          newEl.y += 20;
+          state.elements.push(newEl);
+          selectElement(newEl.id);
+          drawCanvas();
+          pushHistory();
+          clipboardData.x += 20;
+          clipboardData.y += 20;
+        }
       }
     });
 
@@ -1382,16 +1425,6 @@
       
       state.isExporting = false; 
       selectElement(curr); drawCanvas();
-    }
-
-    async function copyPNG() {
-      state.isExporting = true; drawCanvas(); const btn = document.getElementById('copyBtn'), fb = document.getElementById('copyFeedback');
-      try {
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        fb.style.display = 'inline-flex'; const obg = btn.style.background; btn.style.background = '#145e2c';
-        setTimeout(() => { fb.style.display = 'none'; btn.style.background = obg || '#1a7a3a'; }, 2500);
-      } catch (err) { alert("Copy failed."); } finally { state.isExporting = false; drawCanvas(); }
     }
 
     document.fonts.ready.then(drawCanvas); 
