@@ -6,8 +6,6 @@
   <title>A Humble Note Builder</title>
   <!-- Stable Tabler Icons CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-  <!-- Google Fonts for custom display fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
   <!-- jsPDF Library for exact dimension PDF exports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
@@ -111,12 +109,13 @@
     .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
 
     /* Formatting Toolbar */
-    .format-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
-    .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
+    .format-bar { display: flex; flex-direction: column; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
+    .format-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
     .fmt-btn:hover { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); }
     .fmt-btn.active { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
     #propText { border-radius: 0 0 6px 6px; }
-    .fmt-divider { width: 1px; background: var(--card-border); margin: 0 2px; }
+    .fmt-divider { width: 1px; height: 24px; background: var(--card-border); margin: 0 4px; }
 
     /* Custom Dropdown Menus */
     .dropdown-custom { position: relative; display: inline-block; }
@@ -148,7 +147,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.2.1</div>
+        <div class="toolbar-ver">V 1.1.0 &mdash; 2026-09-20</div>
       </div>
     </header>
 
@@ -204,7 +203,6 @@
                   <option value="Georgia, serif">Georgia (Serif)</option>
                   <option value="'Courier New', monospace">Courier New (Monospace)</option>
                   <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans MS (Dyslexia Friendly)</option>
-                  <option value="'Bangers', cursive">Bangers (Display Font)</option>
                 </select>
               </div>
               <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
@@ -248,6 +246,7 @@
               </div>
               <div class="btn-row" style="margin-top: 8px;">
                 <button class="btn btn-secondary" style="width: 100%;" onclick="document.getElementById('imgUpload').click()"><i class="ti ti-photo"></i> Upload Image File</button>
+                <input type="file" id="imgUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
               </div>
               <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
               <div class="grid-2">
@@ -328,77 +327,85 @@
                   </select>
                 </div>
 
-                <!-- Formatting Toolbar -->
+                <!-- 3-Tier Formatting Toolbar -->
                 <div class="format-bar">
-                  <input type="number" id="fmtSize" value="16" style="width: 45px; height: 24px; padding: 0 4px;" title="Font Size" onchange="updateFormat('size', this.value)">
-                  <div class="fmt-divider"></div>
-                  <button class="fmt-btn" id="fmtB" onclick="toggleFormat('bold')" title="Bold"><i class="ti ti-bold"></i></button>
-                  <button class="fmt-btn" id="fmtI" onclick="toggleFormat('italic')" title="Italic"><i class="ti ti-italic"></i></button>
-                  <button class="fmt-btn" id="fmtU" onclick="toggleFormat('underline')" title="Underline"><i class="ti ti-underline"></i></button>
-                  <button class="fmt-btn" id="fmtS" onclick="toggleFormat('strike')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
-                  <div class="fmt-divider"></div>
-                  
-                  <!-- Special Characters Dropdowns -->
-                  <div class="dropdown-custom">
-                    <button class="fmt-btn" onclick="toggleDropdown('mathMenu')" title="Math Symbols"><i class="ti ti-math"></i></button>
-                    <div class="dropdown-menu" id="mathMenu">
-                      <div class="char-grid">
-                        <div class="char-btn" onclick="insertChar('±')">±</div>
-                        <div class="char-btn" onclick="insertChar('×')">×</div>
-                        <div class="char-btn" onclick="insertChar('÷')">÷</div>
-                        <div class="char-btn" onclick="insertChar('√')">√</div>
-                        <div class="char-btn" onclick="insertChar('∞')">∞</div>
-                        <div class="char-btn" onclick="insertChar('≈')">≈</div>
-                        <div class="char-btn" onclick="insertChar('≠')">≠</div>
-                        <div class="char-btn" onclick="insertChar('≤')">≤</div>
-                        <div class="char-btn" onclick="insertChar('≥')">≥</div>
-                        <div class="char-btn" onclick="insertChar('π')">π</div>
-                        <div class="char-btn" onclick="insertChar('Σ')">Σ</div>
-                        <div class="char-btn" onclick="insertChar('Δ')">Δ</div>
-                        <div class="char-btn" onclick="insertChar('∫')">∫</div>
-                        <div class="char-btn" onclick="insertChar('°')">°</div>
-                        <div class="char-btn" onclick="insertChar('μ')">μ</div>
+                  <!-- Row 1: Font size, styling, math/greek, super/sub -->
+                  <div class="format-row">
+                    <input type="number" id="fmtSize" value="16" style="width: 48px; height: 32px; padding: 0 4px;" title="Font Size" onchange="updateFormat('size', this.value)">
+                    <div class="fmt-divider"></div>
+                    <button class="fmt-btn" id="fmtB" onclick="toggleFormat('bold')" title="Bold"><i class="ti ti-bold"></i></button>
+                    <button class="fmt-btn" id="fmtI" onclick="toggleFormat('italic')" title="Italic"><i class="ti ti-italic"></i></button>
+                    <button class="fmt-btn" id="fmtU" onclick="toggleFormat('underline')" title="Underline"><i class="ti ti-underline"></i></button>
+                    <button class="fmt-btn" id="fmtS" onclick="toggleFormat('strike')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
+                    <div class="fmt-divider"></div>
+                    
+                    <div class="dropdown-custom">
+                      <button class="fmt-btn" onclick="toggleDropdown('mathMenu')" title="Math Symbols"><i class="ti ti-math"></i></button>
+                      <div class="dropdown-menu" id="mathMenu">
+                        <div class="char-grid">
+                          <div class="char-btn" onclick="insertChar('±')">±</div>
+                          <div class="char-btn" onclick="insertChar('×')">×</div>
+                          <div class="char-btn" onclick="insertChar('÷')">÷</div>
+                          <div class="char-btn" onclick="insertChar('√')">√</div>
+                          <div class="char-btn" onclick="insertChar('∞')">∞</div>
+                          <div class="char-btn" onclick="insertChar('≈')">≈</div>
+                          <div class="char-btn" onclick="insertChar('≠')">≠</div>
+                          <div class="char-btn" onclick="insertChar('≤')">≤</div>
+                          <div class="char-btn" onclick="insertChar('≥')">≥</div>
+                          <div class="char-btn" onclick="insertChar('π')">π</div>
+                          <div class="char-btn" onclick="insertChar('Σ')">Σ</div>
+                          <div class="char-btn" onclick="insertChar('Δ')">Δ</div>
+                          <div class="char-btn" onclick="insertChar('∫')">∫</div>
+                          <div class="char-btn" onclick="insertChar('°')">°</div>
+                          <div class="char-btn" onclick="insertChar('μ')">μ</div>
+                        </div>
                       </div>
                     </div>
+                    <div class="dropdown-custom">
+                      <button class="fmt-btn" onclick="toggleDropdown('greekMenu')" title="Greek Letters">α</button>
+                      <div class="dropdown-menu" id="greekMenu">
+                        <div class="char-grid">
+                          <div class="char-btn" onclick="insertChar('α')">α</div>
+                          <div class="char-btn" onclick="insertChar('β')">β</div>
+                          <div class="char-btn" onclick="insertChar('γ')">γ</div>
+                          <div class="char-btn" onclick="insertChar('δ')">δ</div>
+                          <div class="char-btn" onclick="insertChar('ε')">ε</div>
+                          <div class="char-btn" onclick="insertChar('θ')">θ</div>
+                          <div class="char-btn" onclick="insertChar('λ')">λ</div>
+                          <div class="char-btn" onclick="insertChar('π')">π</div>
+                          <div class="char-btn" onclick="insertChar('ρ')">ρ</div>
+                          <div class="char-btn" onclick="insertChar('σ')">σ</div>
+                          <div class="char-btn" onclick="insertChar('τ')">τ</div>
+                          <div class="char-btn" onclick="insertChar('φ')">φ</div>
+                          <div class="char-btn" onclick="insertChar('ω')">ω</div>
+                          <div class="char-btn" onclick="insertChar('Ω')">Ω</div>
+                          <div class="char-btn" onclick="insertChar('Δ')">Δ</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button class="fmt-btn" onclick="insertUnicode('sup')" title="Superscript (Selection)"><i class="ti ti-superscript"></i></button>
+                    <button class="fmt-btn" onclick="insertUnicode('sub')" title="Subscript (Selection)"><i class="ti ti-subscript"></i></button>
                   </div>
-                  <div class="dropdown-custom">
-                    <button class="fmt-btn" onclick="toggleDropdown('greekMenu')" title="Greek Letters">α</button>
-                    <div class="dropdown-menu" id="greekMenu">
-                      <div class="char-grid">
-                        <div class="char-btn" onclick="insertChar('α')">α</div>
-                        <div class="char-btn" onclick="insertChar('β')">β</div>
-                        <div class="char-btn" onclick="insertChar('γ')">γ</div>
-                        <div class="char-btn" onclick="insertChar('δ')">δ</div>
-                        <div class="char-btn" onclick="insertChar('ε')">ε</div>
-                        <div class="char-btn" onclick="insertChar('θ')">θ</div>
-                        <div class="char-btn" onclick="insertChar('λ')">λ</div>
-                        <div class="char-btn" onclick="insertChar('π')">π</div>
-                        <div class="char-btn" onclick="insertChar('ρ')">ρ</div>
-                        <div class="char-btn" onclick="insertChar('σ')">σ</div>
-                        <div class="char-btn" onclick="insertChar('τ')">τ</div>
-                        <div class="char-btn" onclick="insertChar('φ')">φ</div>
-                        <div class="char-btn" onclick="insertChar('ω')">ω</div>
-                        <div class="char-btn" onclick="insertChar('Ω')">Ω</div>
-                        <div class="char-btn" onclick="insertChar('Δ')">Δ</div>
-                      </div>
-                    </div>
+                  
+                  <!-- Row 2: Lists -->
+                  <div class="format-row" style="margin-top: 4px;">
+                    <button class="fmt-btn" onclick="insertList('bullet')" title="Bullet List"><i class="ti ti-list"></i></button>
+                    <button class="fmt-btn" onclick="insertList('number')" title="Numbered List"><i class="ti ti-list-numbers"></i></button>
+                    <button class="fmt-btn" onclick="insertList('outline')" title="Outline List"><i class="ti ti-list-tree"></i></button>
+                    <button class="fmt-btn" onclick="insertList('check')" title="Checklist"><i class="ti ti-list-check"></i></button>
                   </div>
 
-                  <button class="fmt-btn" onclick="insertUnicode('sup')" title="Superscript (Selection)"><i class="ti ti-superscript"></i></button>
-                  <button class="fmt-btn" onclick="insertUnicode('sub')" title="Subscript (Selection)"><i class="ti ti-subscript"></i></button>
-                  <div class="fmt-divider"></div>
-                  <button class="fmt-btn" onclick="insertList('bullet')" title="Bullet List"><i class="ti ti-list"></i></button>
-                  <button class="fmt-btn" onclick="insertList('number')" title="Numbered List"><i class="ti ti-list-numbers"></i></button>
-                  <button class="fmt-btn" onclick="insertList('outline')" title="Outline List"><i class="ti ti-list-tree"></i></button>
-                  <button class="fmt-btn" onclick="insertList('check')" title="Checklist"><i class="ti ti-list-check"></i></button>
-                  <div class="fmt-divider"></div>
-                  <button class="fmt-btn" id="fmtL" onclick="updateFormat('align', 'left')" title="Align Left"><i class="ti ti-align-left"></i></button>
-                  <button class="fmt-btn" id="fmtC" onclick="updateFormat('align', 'center')" title="Align Center"><i class="ti ti-align-center"></i></button>
-                  <button class="fmt-btn" id="fmtR" onclick="updateFormat('align', 'right')" title="Align Right"><i class="ti ti-align-right"></i></button>
-                  <div class="fmt-divider"></div>
-                  <button class="fmt-btn" id="fmtVT" onclick="updateFormat('valign', 'top')" title="Vertical Align Top"><i class="ti ti-layout-align-top"></i></button>
-                  <button class="fmt-btn" id="fmtVM" onclick="updateFormat('valign', 'middle')" title="Vertical Align Middle"><i class="ti ti-layout-align-middle"></i></button>
-                  <button class="fmt-btn" id="fmtVB" onclick="updateFormat('valign', 'bottom')" title="Vertical Align Bottom"><i class="ti ti-layout-align-bottom"></i></button>
+                  <!-- Row 3: Horizontal & Vertical Alignments -->
+                  <div class="format-row" style="margin-top: 4px;">
+                    <button class="fmt-btn" id="fmtL" onclick="updateFormat('align', 'left')" title="Align Left"><i class="ti ti-align-left"></i></button>
+                    <button class="fmt-btn" id="fmtC" onclick="updateFormat('align', 'center')" title="Align Center"><i class="ti ti-align-center"></i></button>
+                    <button class="fmt-btn" id="fmtR" onclick="updateFormat('align', 'right')" title="Align Right"><i class="ti ti-align-right"></i></button>
+                    <div class="fmt-divider"></div>
+                    <button class="fmt-btn" id="fmtVT" onclick="updateFormat('valign', 'top')" title="Vertical Align Top"><i class="ti ti-layout-align-top"></i></button>
+                    <button class="fmt-btn" id="fmtVM" onclick="updateFormat('valign', 'middle')" title="Vertical Align Middle"><i class="ti ti-layout-align-middle"></i></button>
+                    <button class="fmt-btn" id="fmtVB" onclick="updateFormat('valign', 'bottom')" title="Vertical Align Bottom"><i class="ti ti-layout-align-bottom"></i></button>
+                  </div>
                 </div>
                 <textarea id="propText" rows="4" oninput="updateSelectedElement()" onchange="pushHistory()"></textarea>
               </div>
@@ -1455,7 +1462,9 @@
         if (el.type === 'box') {
           ctx.fillStyle = '#ffffff'; ctx.fillRect(el.x, el.y, el.w, el.h);
           if (el.bgStyle === 'lines' || el.bgStyle === 'grid') {
-            ctx.strokeStyle = (el.bgStyle === 'grid') ? '#e2e8f0' : '#cbd5e1'; ctx.lineWidth = 1; ctx.beginPath();
+            ctx.strokeStyle = '#cbd5e1'; 
+            ctx.lineWidth = 1; 
+            ctx.beginPath();
             
             const step = (el.bgStyle === 'lines') ? (el.lineSize || getDefaultLineSize()) : (el.gridSize || getDefaultGridSize());
 
