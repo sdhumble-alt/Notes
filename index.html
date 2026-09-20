@@ -109,13 +109,13 @@
     .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
 
     /* Formatting Toolbar */
-    .format-bar { display: flex; flex-direction: column; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
-    .format-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-    .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
+    .format-bar { display: flex; flex-direction: column; gap: 6px; padding: 8px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
+    .format-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; }
     .fmt-btn:hover { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); }
     .fmt-btn.active { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
     #propText { border-radius: 0 0 6px 6px; }
-    .fmt-divider { width: 1px; height: 24px; background: var(--card-border); margin: 0 4px; }
+    .fmt-divider { width: 1px; height: 24px; background: var(--card-border); margin: 0 2px; }
 
     /* Custom Dropdown Menus */
     .dropdown-custom { position: relative; display: inline-block; }
@@ -156,110 +156,8 @@
         
         <!-- SIDEBAR -->
         <aside class="split-left" id="controls-panel">
-          <div class="opt-group">
-            <div class="opt-group-header">
-              <div class="opt-group-header-left">
-                <i class="ti ti-settings"></i>
-                <span class="opt-group-title">Document & Canvas Setup</span>
-              </div>
-            </div>
-            <div class="opt-group-body">
-              <div class="field-row">
-                <label for="paperSize">Target Paper Size</label>
-                <select id="paperSize" onchange="handlePaperSizeChange(true)">
-                  <option value="notebook" selected>Composition Notebook (6.25" x 8.5")</option>
-                  <option value="full-notebook">Full Composition Notebook (7" x 9")</option>
-                  <option value="letter">Standard Letter (8.5" x 11")</option>
-                  <option value="custom">Custom Size...</option>
-                </select>
-              </div>
-              <div class="grid-2 hidden" id="customSizeRow" style="margin-bottom: 10px;">
-                <div class="field-row">
-                  <label>Width (in)</label>
-                  <input type="number" id="customW" value="5.5" step="0.25" onchange="handlePaperSizeChange(true)">
-                </div>
-                <div class="field-row">
-                  <label>Height (in)</label>
-                  <input type="number" id="customH" value="8.5" step="0.25" onchange="handlePaperSizeChange(true)">
-                </div>
-              </div>
-              <div class="field-row" style="margin-top: 4px;">
-                <label for="paperOrientation">Orientation</label>
-                <select id="paperOrientation" onchange="handlePaperSizeChange(true)">
-                  <option value="portrait" selected>Portrait</option>
-                  <option value="landscape">Landscape</option>
-                </select>
-              </div>
-              <div class="field-row" style="margin-top: 4px;">
-                <label for="globalFont">Global Font Family</label>
-                <select id="globalFont" onchange="updateFont(); pushHistory();">
-                  <option value="Arial, sans-serif">Arial (Sans-Serif)</option>
-                  <option value="'Arial Narrow', Arial, sans-serif">Arial Narrow (Sans-Serif)</option>
-                  <option value="Aptos, sans-serif">Aptos (Modern Sans-Serif)</option>
-                  <option value="'Aptos Narrow', sans-serif">Aptos Narrow (Modern Sans-Serif)</option>
-                  <option value="Verdana, sans-serif">Verdana (Wide Sans-Serif)</option>
-                  <option value="Tahoma, sans-serif">Tahoma (Sans-Serif)</option>
-                  <option value="'Times New Roman', serif">Times New Roman (Serif)</option>
-                  <option value="Georgia, serif">Georgia (Serif)</option>
-                  <option value="'Courier New', monospace">Courier New (Monospace)</option>
-                  <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans MS (Dyslexia Friendly)</option>
-                </select>
-              </div>
-              <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
-              
-              <!-- Alignment & Grid Options -->
-              <div class="field-row">
-                <div class="toggle-row" style="margin-bottom: 4px;">
-                  <input type="checkbox" id="snapGrid" onchange="drawCanvas()">
-                  <label for="snapGrid">Snap to Grid</label>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <label style="font-size: 8.5pt; color: var(--input-label); min-width: 55px;">Grid Size</label>
-                  <input type="range" id="snapSizeSlider" min="2" max="100" value="9" style="flex: 1;" oninput="document.getElementById('snapSize').value = this.value; drawCanvas();">
-                  <input type="number" id="snapSize" value="9" style="width: 48px; padding: 2px 4px;" oninput="document.getElementById('snapSizeSlider').value = this.value; drawCanvas();">
-                </div>
-              </div>
-              <div class="toggle-row" style="margin-top: 10px;">
-                <input type="checkbox" id="smartGuides" checked onchange="drawCanvas()">
-                <label for="smartGuides">Smart Alignment Guides</label>
-              </div>
-              <div class="toggle-row" style="margin-top: 8px;">
-                <input type="checkbox" id="showMargins" checked onchange="drawCanvas()">
-                <label for="showMargins" style="color: #64748b;">Show .25" Safe Margins</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="opt-group">
-            <div class="opt-group-header">
-              <div class="opt-group-header-left">
-                <i class="ti ti-plus"></i>
-                <span class="opt-group-title">Insert Elements</span>
-              </div>
-            </div>
-            <div class="opt-group-body">
-              <div class="grid-2">
-                <button class="btn btn-secondary" onclick="addElement('box')"><i class="ti ti-square"></i> Blank Box</button>
-                <button class="btn btn-secondary" onclick="addElement('text')"><i class="ti ti-typography"></i> Text Block</button>
-                <button class="btn btn-secondary" onclick="addElement('table')"><i class="ti ti-table"></i> Data Table</button>
-                <button class="btn btn-secondary" onclick="addPageNumber()"><i class="ti ti-file-digit"></i> Page Number</button>
-              </div>
-              <div class="btn-row" style="margin-top: 8px;">
-                <button class="btn btn-secondary" style="width: 100%;" onclick="document.getElementById('imgUpload').click()"><i class="ti ti-photo"></i> Upload Image File</button>
-                <input type="file" id="imgUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
-              </div>
-              <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
-              <div class="grid-2">
-                <button class="btn btn-secondary" onclick="loadTemplate('cornell')"><i class="ti ti-layout-sidebar"></i> Cornell Template</button>
-                <button class="btn btn-secondary" onclick="loadTemplate('frayer')"><i class="ti ti-layout-grid"></i> Frayer Template</button>
-              </div>
-              <div class="btn-row">
-                <button class="btn btn-danger" onclick="clearCanvas()" style="width: 100%;"><i class="ti ti-trash"></i> Clear Canvas</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- PROPERTIES PANEL -->
+          
+          <!-- PROPERTIES PANEL MOVED TO TOP -->
           <div class="opt-group hidden" id="propPanel">
             <div class="opt-group-header">
               <div class="opt-group-header-left">
@@ -329,16 +227,18 @@
 
                 <!-- 3-Tier Formatting Toolbar -->
                 <div class="format-bar">
-                  <!-- Row 1: Font size, styling, math/greek, super/sub -->
+                  <!-- Row 1: Font size, styling -->
                   <div class="format-row">
-                    <input type="number" id="fmtSize" value="16" style="width: 48px; height: 32px; padding: 0 4px;" title="Font Size" onchange="updateFormat('size', this.value)">
+                    <input type="number" id="fmtSize" value="12" style="width: 48px; height: 34px; padding: 0 4px;" title="Font Size" onchange="updateFormat('size', this.value)">
                     <div class="fmt-divider"></div>
                     <button class="fmt-btn" id="fmtB" onclick="toggleFormat('bold')" title="Bold"><i class="ti ti-bold"></i></button>
                     <button class="fmt-btn" id="fmtI" onclick="toggleFormat('italic')" title="Italic"><i class="ti ti-italic"></i></button>
                     <button class="fmt-btn" id="fmtU" onclick="toggleFormat('underline')" title="Underline"><i class="ti ti-underline"></i></button>
                     <button class="fmt-btn" id="fmtS" onclick="toggleFormat('strike')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
-                    <div class="fmt-divider"></div>
-                    
+                  </div>
+                  
+                  <!-- Row 2: Math/Greek, Super/Sub, Lists -->
+                  <div class="format-row">
                     <div class="dropdown-custom">
                       <button class="fmt-btn" onclick="toggleDropdown('mathMenu')" title="Math Symbols"><i class="ti ti-math"></i></button>
                       <div class="dropdown-menu" id="mathMenu">
@@ -384,12 +284,9 @@
                       </div>
                     </div>
 
-                    <button class="fmt-btn" onclick="insertUnicode('sup')" title="Superscript (Selection)"><i class="ti ti-superscript"></i></button>
-                    <button class="fmt-btn" onclick="insertUnicode('sub')" title="Subscript (Selection)"><i class="ti ti-subscript"></i></button>
-                  </div>
-                  
-                  <!-- Row 2: Lists -->
-                  <div class="format-row" style="margin-top: 4px;">
+                    <button class="fmt-btn" onclick="insertUnicode('sup')" title="Superscript Toggle"><i class="ti ti-superscript"></i></button>
+                    <button class="fmt-btn" onclick="insertUnicode('sub')" title="Subscript Toggle"><i class="ti ti-subscript"></i></button>
+                    <div class="fmt-divider"></div>
                     <button class="fmt-btn" onclick="insertList('bullet')" title="Bullet List"><i class="ti ti-list"></i></button>
                     <button class="fmt-btn" onclick="insertList('number')" title="Numbered List"><i class="ti ti-list-numbers"></i></button>
                     <button class="fmt-btn" onclick="insertList('outline')" title="Outline List"><i class="ti ti-list-tree"></i></button>
@@ -397,7 +294,7 @@
                   </div>
 
                   <!-- Row 3: Horizontal & Vertical Alignments -->
-                  <div class="format-row" style="margin-top: 4px;">
+                  <div class="format-row">
                     <button class="fmt-btn" id="fmtL" onclick="updateFormat('align', 'left')" title="Align Left"><i class="ti ti-align-left"></i></button>
                     <button class="fmt-btn" id="fmtC" onclick="updateFormat('align', 'center')" title="Align Center"><i class="ti ti-align-center"></i></button>
                     <button class="fmt-btn" id="fmtR" onclick="updateFormat('align', 'right')" title="Align Right"><i class="ti ti-align-right"></i></button>
@@ -417,6 +314,110 @@
 
               <div class="btn-row">
                 <button class="btn btn-danger" onclick="deleteSelected()"><i class="ti ti-trash"></i> Delete Selected</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <div class="opt-group-header-left">
+                <i class="ti ti-settings"></i>
+                <span class="opt-group-title">Document & Canvas Setup</span>
+              </div>
+            </div>
+            <div class="opt-group-body">
+              <div class="field-row">
+                <label for="paperSize">Target Paper Size</label>
+                <select id="paperSize" onchange="handlePaperSizeChange(true)">
+                  <option value="notebook" selected>Composition Notebook (6.25" x 8.5")</option>
+                  <option value="full-notebook">Full Composition Notebook (7" x 9")</option>
+                  <option value="letter">Standard Letter (8.5" x 11")</option>
+                  <option value="custom">Custom Size...</option>
+                </select>
+              </div>
+              <div class="grid-2 hidden" id="customSizeRow" style="margin-bottom: 10px;">
+                <div class="field-row">
+                  <label>Width (in)</label>
+                  <input type="number" id="customW" value="5.5" step="0.25" onchange="handlePaperSizeChange(true)">
+                </div>
+                <div class="field-row">
+                  <label>Height (in)</label>
+                  <input type="number" id="customH" value="8.5" step="0.25" onchange="handlePaperSizeChange(true)">
+                </div>
+              </div>
+              <div class="field-row" style="margin-top: 4px;">
+                <label for="paperOrientation">Orientation</label>
+                <select id="paperOrientation" onchange="handlePaperSizeChange(true)">
+                  <option value="portrait" selected>Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
+              </div>
+              <div class="field-row" style="margin-top: 4px;">
+                <label for="globalFont">Global Font Family</label>
+                <select id="globalFont" onchange="updateFont(); pushHistory();">
+                  <option value="Arial, sans-serif">Arial (Sans-Serif)</option>
+                  <option value="'Arial Narrow', Arial, sans-serif">Arial Narrow (Sans-Serif)</option>
+                  <option value="Aptos, sans-serif">Aptos (Modern Sans-Serif)</option>
+                  <option value="'Aptos Narrow', sans-serif">Aptos Narrow (Modern Sans-Serif)</option>
+                  <option value="Verdana, sans-serif">Verdana (Wide Sans-Serif)</option>
+                  <option value="Tahoma, sans-serif">Tahoma (Sans-Serif)</option>
+                  <option value="'Times New Roman', serif">Times New Roman (Serif)</option>
+                  <option value="Georgia, serif">Georgia (Serif)</option>
+                  <option value="'Courier New', monospace">Courier New (Monospace)</option>
+                  <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans MS (Dyslexia Friendly)</option>
+                </select>
+              </div>
+              <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
+              
+              <!-- Alignment & Grid Options -->
+              <div class="field-row">
+                <div class="toggle-row" style="margin-bottom: 4px;">
+                  <input type="checkbox" id="snapGrid" onchange="drawCanvas()">
+                  <label for="snapGrid">Snap to Grid</label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label style="font-size: 8.5pt; color: var(--input-label); min-width: 55px;">Grid Size</label>
+                  <input type="range" id="snapSizeSlider" min="2" max="100" value="14" style="flex: 1;" oninput="document.getElementById('snapSize').value = this.value; drawCanvas();">
+                  <input type="number" id="snapSize" value="14" style="width: 48px; padding: 2px 4px;" oninput="document.getElementById('snapSizeSlider').value = this.value; drawCanvas();">
+                </div>
+              </div>
+              <div class="toggle-row" style="margin-top: 10px;">
+                <input type="checkbox" id="smartGuides" checked onchange="drawCanvas()">
+                <label for="smartGuides">Smart Alignment Guides</label>
+              </div>
+              <div class="toggle-row" style="margin-top: 8px;">
+                <input type="checkbox" id="showMargins" checked onchange="drawCanvas()">
+                <label for="showMargins" style="color: #64748b;">Show .25" Safe Margins</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <div class="opt-group-header-left">
+                <i class="ti ti-plus"></i>
+                <span class="opt-group-title">Insert Elements</span>
+              </div>
+            </div>
+            <div class="opt-group-body">
+              <div class="grid-2">
+                <button class="btn btn-secondary" onclick="addElement('box')"><i class="ti ti-square"></i> Blank Box</button>
+                <button class="btn btn-secondary" onclick="addElement('text')"><i class="ti ti-typography"></i> Text Block</button>
+                <button class="btn btn-secondary" onclick="addElement('table')"><i class="ti ti-table"></i> Data Table</button>
+                <button class="btn btn-secondary" onclick="addPageNumber()"><i class="ti ti-file-digit"></i> Page Number</button>
+              </div>
+              <div class="btn-row" style="margin-top: 8px;">
+                <button class="btn btn-secondary" style="width: 100%;" onclick="document.getElementById('imgUpload').click()"><i class="ti ti-photo"></i> Upload Image File</button>
+                <input type="file" id="imgUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+              </div>
+              <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
+              <div class="grid-2">
+                <button class="btn btn-secondary" onclick="loadTemplate('cornell')"><i class="ti ti-layout-sidebar"></i> Cornell Template</button>
+                <button class="btn btn-secondary" onclick="loadTemplate('frayer')"><i class="ti ti-layout-grid"></i> Frayer Template</button>
+                <button class="btn btn-secondary" onclick="loadTemplate('lab')" style="grid-column: span 2;"><i class="ti ti-flask"></i> Lab Protocol</button>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-danger" onclick="clearCanvas()" style="width: 100%;"><i class="ti ti-trash"></i> Clear Canvas</button>
               </div>
             </div>
           </div>
@@ -468,11 +469,14 @@
     const SUPER_MAP = { '0':'⁰', '1':'¹', '2':'²', '3':'³', '4':'⁴', '5':'⁵', '6':'⁶', '7':'⁷', '8':'⁸', '9':'⁹', '+':'⁺', '-':'⁻', '=':'⁼', '(':'⁽', ')':'⁾', 'a':'ᵃ', 'b':'ᵇ', 'c':'ᶜ', 'd':'ᵈ', 'e':'ᵉ', 'm':'ᵐ', 'n':'ⁿ', 'p':'ᵖ', 'r':'ʳ', 's':'ˢ', 't':'ᵗ', 'x':'ˣ', 'y':'ʸ', 'z':'ᶻ' };
     const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ₙ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
 
+    const REVERSE_SUPER_MAP = {}; for(let k in SUPER_MAP) REVERSE_SUPER_MAP[SUPER_MAP[k]] = k;
+    const REVERSE_SUB_MAP = {}; for(let k in SUB_MAP) REVERSE_SUB_MAP[SUB_MAP[k]] = k;
+
     function getDefaultLineSize() {
-      return parseInt(localStorage.getItem('humbleNoteLineSize')) || 30;
+      return parseInt(localStorage.getItem('humbleNoteLineSize')) || 20;
     }
     function getDefaultGridSize() {
-      return parseInt(localStorage.getItem('humbleNoteGridSize')) || 20;
+      return parseInt(localStorage.getItem('humbleNoteGridSize')) || 14;
     }
 
     let state = {
@@ -626,7 +630,7 @@
     let dragOffsetX = 0; let dragOffsetY = 0;
     const HANDLE_SIZE = 12;
 
-    function defaultFormat() { return { bold: false, italic: false, underline: false, strike: false, size: 16, align: 'left', valign: 'top' }; }
+    function defaultFormat() { return { bold: false, italic: false, underline: false, strike: false, size: 12, align: 'left', valign: 'top' }; }
 
     let scaleModalPromiseResolve = null;
     let lastPaperSettings = { size: 'notebook', orient: 'portrait', customW: 5.5, customH: 8.5 };
@@ -785,6 +789,75 @@
         const cw = 220, ch = 80;
         let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.bold = true; cFormat.valign = 'middle';
         state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', labelAlign: 'left', text: '', bgStyle: 'none', lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, format: cFormat });
+      } else if (type === 'lab') {
+        
+        // Dynamically scaled Lab Protocol layout
+        const col1W = safeW * (396/552); 
+        const col2W = safeW * (135/552); 
+        const leftX = m + (safeW * (3/552));
+        const rightX = m + (safeW * (408/552));
+
+        let titleFormat = defaultFormat();
+        titleFormat.bold = true;
+        titleFormat.italic = true;
+        titleFormat.size = 16;
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: leftX, y: m, w: col1W, h: safeH * (21/768), 
+          label: '', labelAlign: 'left', text: 'Lab Protocol Title', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: false, borderWidth: 2, 
+          format: titleFormat
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: leftX, y: m + safeH * (39/768), w: col1W, h: safeH * (72/768), 
+          label: 'Background', labelAlign: 'left', text: '', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (39/768), w: col2W, h: safeH * (72/768), 
+          label: 'Safety', labelAlign: 'left', text: '', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (129/768), w: col2W, h: safeH * (99/768), 
+          label: 'Materials', labelAlign: 'left', text: '☐ One\n☐ Two\n☐ Three', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: leftX, y: m + safeH * (129/768), w: col1W, h: safeH * (630/768), 
+          label: 'Procedure', labelAlign: 'left', text: '', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (246/768), w: col2W, h: safeH * (243/768), 
+          label: 'Information', labelAlign: 'left', text: '', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (507/768), w: col2W, h: safeH * (153/768), 
+          label: 'Clean Up', labelAlign: 'left', text: '', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
+        state.elements.push({
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (678/768), w: col2W, h: safeH * (81/768), 
+          label: 'Stamp', labelAlign: 'left', text: '', bgStyle: 'none', 
+          lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
+          format: defaultFormat()
+        });
+
       }
       selectElement(null); drawCanvas(); pushHistory();
     }
@@ -793,7 +866,12 @@
       const el = { id: generateId(), type: type, x: 100, y: 100, format: defaultFormat(), showBorder: true, borderWidth: 2 };
       if (type === 'box') { el.w = 300; el.h = 150; el.label = ""; el.labelAlign = "left"; el.bgStyle = "none"; el.lineSize = getDefaultLineSize(); el.gridSize = getDefaultGridSize(); el.text = ""; } 
       else if (type === 'text') { el.w = 300; el.h = 30; el.showBorder = false; el.text = ""; }
-      else if (type === 'table') { el.w = 300; el.h = 150; el.rows = 3; el.cols = 3; el.cells = buildCells(null, 3, 3); }
+      else if (type === 'table') { 
+        el.w = 300; el.h = 150; el.rows = 3; el.cols = 3; 
+        el.format.align = 'center'; el.format.valign = 'middle';
+        el.cells = buildCells(null, 3, 3); 
+        for(let c=0; c<3; c++) { el.cells[0][c].format = { bold: true }; }
+      }
       state.elements.push(el); state.selectedCell = {r:0, c:0}; selectElement(el.id); drawCanvas(); pushHistory();
     }
 
@@ -1090,9 +1168,21 @@
       if (start === end) return;
       const selected = ta.value.substring(start, end);
       const map = type === 'sub' ? SUB_MAP : SUPER_MAP;
-      const converted = selected.split('').map(c => map[c.toLowerCase()] || c).join('');
+      const revMap = type === 'sub' ? REVERSE_SUB_MAP : REVERSE_SUPER_MAP;
+      
+      const converted = selected.split('').map(c => {
+         if (revMap[c]) return revMap[c]; // Revert it if it's already sub/super
+         return map[c.toLowerCase()] || map[c] || c; // Convert it if possible
+      }).join('');
+      
       ta.value = ta.value.substring(0, start) + converted + ta.value.substring(end);
       updateSelectedElement(); pushHistory();
+      
+      // Reselect the text to allow for immediate multi-toggling
+      setTimeout(() => {
+        ta.focus();
+        ta.setSelectionRange(start, start + converted.length);
+      }, 0);
     }
 
     function insertList(type) {
@@ -1331,11 +1421,11 @@
 
     // --- Renderer ---
     function applyFormatToContext(ctx, format, gFont) {
-      if (!format) { ctx.font = `16px ${gFont}`; return; }
+      if (!format) { ctx.font = `12px ${gFont}`; return; }
       let fStr = "";
       if (format.italic) fStr += "italic ";
       if (format.bold) fStr += "bold ";
-      fStr += `${format.size || 16}px ${gFont}`;
+      fStr += `${format.size || 12}px ${gFont}`;
       ctx.font = fStr;
     }
 
@@ -1374,7 +1464,7 @@
     function drawFormattedText(ctx, text, startX, startY, w, availH, format, gFont) {
       if (!text) return;
       applyFormatToContext(ctx, format, gFont);
-      const lineHeight = (format.size || 16) * 1.3;
+      const lineHeight = (format.size || 12) * 1.3;
       const lines = calculateTextLines(ctx, text, w, format, gFont);
       const totalTextHeight = lines.length * lineHeight;
 
@@ -1586,7 +1676,11 @@
     handlePaperSizeChange(false);
     
     // Save initial state to history stack
-    setTimeout(() => { fitToWidth(); pushHistory(); }, 100);
+    setTimeout(() => {
+      const wZoom = (viewport.clientWidth - 80) / canvas.width;
+      setZoom(Math.min(1.0, wZoom));
+      pushHistory();
+    }, 100);
   </script>
 </body>
 </html>
