@@ -95,6 +95,13 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .hidden { display: none !important; }
 
+    /* Custom Modals */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(30, 42, 58, 0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: var(--app-panel-bg); padding: 24px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); max-width: 440px; width: 100%; border: 1px solid var(--card-border); }
+    .modal-title { font-size: 14pt; font-weight: bold; margin-bottom: 12px; color: var(--header-bg); }
+    .modal-text { font-size: 11pt; color: #475569; margin-bottom: 24px; line-height: 1.4; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
     /* Zoom & Scroll Canvas System */
     .canvas-viewport { position: relative; background: #e2e8f0; border: 1px solid var(--card-border); border-radius: 8px; box-shadow: inset 0 1px 4px rgba(0,0,0,0.1); width: 100%; flex: 1; overflow: auto; }
     .canvas-inner-wrapper { min-width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -102,6 +109,7 @@
 
     .stage-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+    .copy-feedback { font-size: 9.5pt; color: var(--btn-green-bg); font-weight: 600; display: none; align-items: center; gap: 4px; }
 
     /* Formatting Toolbar */
     .format-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
@@ -141,7 +149,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.18.0</div>
+        <div class="toolbar-ver">V 1.19.0</div>
       </div>
     </header>
 
@@ -176,6 +184,13 @@
                   <label>Height (in)</label>
                   <input type="number" id="customH" value="8.5" step="0.25" onchange="handlePaperSizeChange(true)">
                 </div>
+              </div>
+              <div class="field-row" style="margin-top: 4px;">
+                <label for="paperOrientation">Orientation</label>
+                <select id="paperOrientation" onchange="handlePaperSizeChange(true)">
+                  <option value="portrait" selected>Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
               </div>
               <div class="field-row" style="margin-top: 4px;">
                 <label for="globalFont">Global Font Family</label>
@@ -408,6 +423,19 @@
 
       </div>
     </main>
+    
+    <!-- Custom Modals -->
+    <div id="scaleModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-title">Paper Size Changed</div>
+        <div class="modal-text">Do you want to mathematically scale your existing elements to match the new paper dimensions?</div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="resolveScaleModal('cancel')">Cancel</button>
+          <button class="btn btn-danger" onclick="resolveScaleModal('no')">No, do not scale</button>
+          <button class="btn btn-green" onclick="resolveScaleModal('yes')">Yes, scale</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -469,7 +497,11 @@
       if (state.paper.widthInches === 6.25 && state.paper.heightInches === 8.5) paperVal = 'notebook';
       else if (state.paper.widthInches === 7 && state.paper.heightInches === 9) paperVal = 'full-notebook';
       else if (state.paper.widthInches === 8.5 && state.paper.heightInches === 11) paperVal = 'letter';
+      
+      lastPaperSettings = { size: paperVal, orient: 'portrait', customW: state.paper.widthInches, customH: state.paper.heightInches };
+
       document.getElementById('paperSize').value = paperVal;
+      document.getElementById('paperOrientation').value = 'portrait';
       if (paperVal === 'custom') {
         document.getElementById('customSizeRow').classList.remove('hidden');
         document.getElementById('customW').value = state.paper.widthInches;
@@ -509,6 +541,8 @@
     function loadSettings() {
       const saved = localStorage.getItem('humbleNoteDefaultSize');
       if (saved) document.getElementById('paperSize').value = saved;
+      const orient = localStorage.getItem('humbleNoteOrientation');
+      if (orient) document.getElementById('paperOrientation').value = orient;
       const cw = localStorage.getItem('humbleNoteCustomW');
       if (cw) document.getElementById('customW').value = cw;
       const ch = localStorage.getItem('humbleNoteCustomH');
@@ -560,21 +594,61 @@
 
     function defaultFormat() { return { bold: false, italic: false, underline: false, strike: false, size: 16, align: 'left', valign: 'top' }; }
 
-    function handlePaperSizeChange(isUserAction = true) {
+    let scaleModalPromiseResolve = null;
+    let lastPaperSettings = { size: 'notebook', orient: 'portrait', customW: 5.5, customH: 8.5 };
+
+    function showScaleModal() {
+        document.getElementById('scaleModal').classList.remove('hidden');
+        return new Promise(resolve => {
+            scaleModalPromiseResolve = resolve;
+        });
+    }
+
+    function resolveScaleModal(choice) {
+        document.getElementById('scaleModal').classList.add('hidden');
+        if (scaleModalPromiseResolve) {
+            scaleModalPromiseResolve(choice);
+            scaleModalPromiseResolve = null;
+        }
+    }
+
+    async function handlePaperSizeChange(isUserAction = true) {
       const sizeStr = document.getElementById('paperSize').value;
-      let newW = 8.5, newH = 11;
-      if (sizeStr === 'notebook') { newW = 6.25; newH = 8.5; }
-      else if (sizeStr === 'full-notebook') { newW = 7; newH = 9; }
-      else if (sizeStr === 'custom') { 
-          newW = parseFloat(document.getElementById('customW').value) || 8.5; 
-          newH = parseFloat(document.getElementById('customH').value) || 11; 
+      const orientStr = document.getElementById('paperOrientation').value;
+      const customW = parseFloat(document.getElementById('customW').value) || 8.5;
+      const customH = parseFloat(document.getElementById('customH').value) || 11;
+      
+      let rawW = 8.5, rawH = 11;
+      if (sizeStr === 'notebook') { rawW = 6.25; rawH = 8.5; }
+      else if (sizeStr === 'full-notebook') { rawW = 7; rawH = 9; }
+      else if (sizeStr === 'custom') { rawW = customW; rawH = customH; }
+
+      let newW = rawW, newH = rawH;
+      if (orientStr === 'landscape') {
+        newW = Math.max(rawW, rawH);
+        newH = Math.min(rawW, rawH);
+      } else {
+        newW = Math.min(rawW, rawH);
+        newH = Math.max(rawW, rawH);
       }
 
       const oldW = state.paper.widthInches;
       const oldH = state.paper.heightInches;
 
       if (isUserAction && state.elements.length > 0 && (newW !== oldW || newH !== oldH)) {
-          if(confirm("Do you want to scale your existing content to match the new paper size?")) {
+          const choice = await showScaleModal();
+          if (choice === 'cancel') {
+              // Revert UI to previous
+              document.getElementById('paperSize').value = lastPaperSettings.size;
+              document.getElementById('paperOrientation').value = lastPaperSettings.orient;
+              document.getElementById('customW').value = lastPaperSettings.customW;
+              document.getElementById('customH').value = lastPaperSettings.customH;
+              if (lastPaperSettings.size === 'custom') document.getElementById('customSizeRow').classList.remove('hidden');
+              else document.getElementById('customSizeRow').classList.add('hidden');
+              return;
+          }
+          
+          if (choice === 'yes') {
               const scaleX = newW / oldW;
               const scaleY = newH / oldH;
               const scaleFont = Math.min(scaleX, scaleY);
@@ -590,9 +664,12 @@
           }
       }
 
+      lastPaperSettings = { size: sizeStr, orient: orientStr, customW, customH };
+
       localStorage.setItem('humbleNoteDefaultSize', sizeStr);
-      localStorage.setItem('humbleNoteCustomW', document.getElementById('customW').value);
-      localStorage.setItem('humbleNoteCustomH', document.getElementById('customH').value);
+      localStorage.setItem('humbleNoteOrientation', orientStr);
+      localStorage.setItem('humbleNoteCustomW', customW);
+      localStorage.setItem('humbleNoteCustomH', customH);
 
       const customRow = document.getElementById('customSizeRow');
       if (sizeStr === 'custom') customRow.classList.remove('hidden');
