@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Humble Note Builder</title>
+  <!-- Stable Tabler Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <!-- Google Fonts for custom display fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <!-- jsPDF Library for exact dimension PDF exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* --- A HUMBLE UNIFIED STYLESHEET START --- */
+    :root {
+      --header-bg: #1e2a3a;
+      --header-border: #12202e;
+      --header-title: #ffffff;
+      --header-sub: rgba(255, 255, 255, 0.65);
+      --header-ver: rgba(255, 255, 255, 0.45);
+      --app-window-bg: #f0f2f5;
+      --app-panel-bg: #ffffff;
+      --stage-bg: #f9fafc;
+      --card-border: #cbd5e1;
+      --card-header-bg: #f8fafc;
+      --card-header-border: #e2e8f0;
+      --card-header-title: #475569;
+      --input-border: #cbd5e1;
+      --input-border-hover: #94a3b8;
+      --input-border-focus: #3266ad;
+      --input-focus-ring: rgba(50, 102, 173, 0.15);
+      --btn-primary-bg: #3266ad;
+      --btn-primary-hover: #185fa5;
+      --btn-secondary-bg: #ffffff;
+      --btn-secondary-border: #cbd5e1;
+      --btn-secondary-hover-bg: #f1f5f9;
+      --btn-secondary-hover-border: #94a3b8;
+      --btn-green-bg: #1a7a3a;
+      --btn-green-hover: #145e2c;
+      --btn-danger-bg: #b00020;
+      --btn-danger-hover: #8e001a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; font-size: 11pt; background: var(--app-window-bg); color: #1e2a3a; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    #app { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; background: var(--app-panel-bg); }
+
+    #app-header { background: var(--header-bg); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid var(--header-border); }
+    .header-titles { display: flex; flex-direction: column; gap: 2px; }
+    #app-title { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; font-weight: bold; color: var(--header-title); letter-spacing: 0.01em; line-height: 1.2; display: flex; align-items: center; gap: 6px; }
+    #app-subtitle { font-size: 10px; color: var(--header-sub); font-style: italic; line-height: 1.2; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .toolbar-ver { font-size: 8pt; color: var(--header-ver); font-family: Arial, sans-serif; white-space: nowrap; margin-left: 8px; }
+
+    .content { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+    .split-layout { display: grid; grid-template-columns: minmax(360px, 400px) 1fr; gap: 18px; height: 100%; width: 100%; overflow: hidden; align-items: stretch; padding: 16px; }
+    .split-left { height: 100%; overflow-y: auto; padding-right: 6px; }
+    .split-right { height: 100%; overflow-y: auto; background: var(--stage-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; }
+
+    .opt-group { border: 1px solid var(--card-border); border-radius: 8px; margin-bottom: 14px; overflow: hidden; background: #ffffff; }
+    .opt-group-header { background: var(--card-header-bg); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--card-header-border); }
+    .opt-group-header-left { display: flex; align-items: center; gap: 6px; }
+    .opt-group-header i { font-size: 14px; color: #64748b; }
+    .opt-group-title { font-size: 8.5pt; font-weight: 700; color: var(--card-header-title); text-transform: uppercase; letter-spacing: .05em; }
+    .opt-group-body { padding: 12px; }
+
+    input[type=text], input[type=number], select, textarea { border: 1.5px solid var(--input-border); border-radius: 6px; padding: 6px 9px; font-size: 10pt; font-family: Arial, sans-serif; background: #ffffff; color: #1e2a3a; outline: none; transition: border-color .15s, box-shadow .15s; width: 100%; box-sizing: border-box; }
+    input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus { border-color: var(--input-border-focus); border-width: 2px; box-shadow: 0 0 0 3px var(--input-focus-ring); }
+    
+    input[type=range] { accent-color: var(--btn-primary-bg); cursor: pointer; }
+
+    .field-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .field-row label { font-size: 9.5pt; color: #475569; font-weight: 600; }
+    
+    .toggle-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+    .toggle-row label { font-size: 10pt; color: #1e2a3a; cursor: pointer; user-select: none; }
+    input[type=radio], input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; accent-color: var(--btn-primary-bg); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-radius: 6px; padding: 6px 12px; font-size: 9.5pt; font-family: Arial, sans-serif; font-weight: 600; cursor: pointer; transition: all .12s; border: none; }
+    .btn-primary { background: var(--btn-primary-bg); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--btn-primary-hover); }
+    .btn-secondary { background: var(--btn-secondary-bg); color: #334155; border: 1.5px solid var(--btn-secondary-border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--btn-secondary-hover-bg); border-color: var(--btn-secondary-hover-border); }
+    .btn-green { background: var(--btn-green-bg); color: #fff; }
+    .btn-green:hover:not(:disabled) { background: var(--btn-green-hover); }
+    .btn-danger { background: var(--btn-danger-bg); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: var(--btn-danger-hover); }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
+
+    /* Header Specific Buttons */
+    .btn-hdr { padding: 4px 10px; font-size: 9pt; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-hdr:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+    .btn-hdr:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .hidden { display: none !important; }
+
+    /* Zoom & Scroll Canvas System */
+    .canvas-viewport { position: relative; background: #e2e8f0; border: 1px solid var(--card-border); border-radius: 8px; box-shadow: inset 0 1px 4px rgba(0,0,0,0.1); width: 100%; flex: 1; overflow: auto; }
+    .canvas-inner-wrapper { min-width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; }
+    #mainCanvas { background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: crosshair; transform-origin: center center; }
+
+    .stage-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+    .copy-feedback { font-size: 9.5pt; color: var(--btn-green-bg); font-weight: 600; display: none; align-items: center; gap: 4px; }
+
+    /* Formatting Toolbar */
+    .format-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
+    .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
+    .fmt-btn:hover { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); }
+    .fmt-btn.active { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+    #propText { border-radius: 0 0 6px 6px; }
+    .fmt-divider { width: 1px; background: var(--card-border); margin: 0 2px; }
+
+    /* Custom Dropdown Menus */
+    .dropdown-custom { position: relative; display: inline-block; }
+    .dropdown-menu { display: none; position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 100; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); padding: 6px; width: 160px; }
+    .dropdown-menu.open { display: block; }
+    .char-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .char-btn { border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 4px; text-align: center; padding: 4px 0; font-size: 11pt; color: #1e2a3a; transition: 0.1s; }
+    .char-btn:hover { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); }
+
+    .cell-header-toggle { background: #eef3fb; padding: 6px 8px; border-radius: 4px; border: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cell-header-toggle span { font-size: 8.5pt; font-weight: bold; color: #1e429f; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="app-header">
+      <div class="header-titles">
+        <div id="app-title"><i class="ti ti-layout-board"></i> A Humble Note Builder</div>
+        <div id="app-subtitle">Pedagogical canvas for guided student notes &mdash; Built by Steven Humble</div>
+      </div>
+      <div class="header-actions">
+        <!-- Project Controls -->
+        <button class="btn btn-hdr" onclick="newProject()"><i class="ti ti-file"></i> New</button>
+        <button class="btn btn-hdr" onclick="document.getElementById('projUpload').click()"><i class="ti ti-folder-open"></i> Open</button>
+        <input type="file" id="projUpload" accept=".json,.humblenote" class="hidden" onchange="openProject(event)">
+        <button class="btn btn-hdr" onclick="saveProject()"><i class="ti ti-device-floppy"></i> Save</button>
+        <div style="width: 1px; height: 18px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        <!-- Undo/Redo -->
+        <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
+        <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
+        
+        <div class="toolbar-ver">V 1.17.0</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="split-layout">
+        
+        <!-- SIDEBAR -->
+        <aside class="split-left" id="controls-panel">
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <div class="opt-group-header-left">
+                <i class="ti ti-settings"></i>
+                <span class="opt-group-title">Document & Canvas Setup</span>
+              </div>
+            </div>
+            <div class="opt-group-body">
+              <div class="field-row">
+                <label for="paperSize">Target Paper Size</label>
+                <select id="paperSize" onchange="handlePaperSizeChange(true)">
+                  <option value="notebook" selected>Composition Notebook (6.25" x 8.5")</option>
+                  <option value="full-notebook">Full Composition Notebook (7" x 9")</option>
+                  <option value="letter">Standard Letter (8.5" x 11")</option>
+                  <option value="custom">Custom Size...</option>
+                </select>
+              </div>
+              <div class="grid-2 hidden" id="customSizeRow" style="margin-bottom: 10px;">
+                <div class="field-row">
+                  <label>Width (in)</label>
+                  <input type="number" id="customW" value="5.5" step="0.25" onchange="handlePaperSizeChange(true)">
+                </div>
+                <div class="field-row">
+                  <label>Height (in)</label>
+                  <input type="number" id="customH" value="8.5" step="0.25" onchange="handlePaperSizeChange(true)">
+                </div>
+              </div>
+              <div class="field-row" style="margin-top: 4px;">
+                <label for="globalFont">Global Font Family</label>
+                <select id="globalFont" onchange="updateFont(); pushHistory();">
+                  <option value="Arial, sans-serif">Arial (Sans-Serif)</option>
+                  <option value="'Arial Narrow', Arial, sans-serif">Arial Narrow (Sans-Serif)</option>
+                  <option value="Aptos, sans-serif">Aptos (Modern Sans-Serif)</option>
+                  <option value="'Aptos Narrow', sans-serif">Aptos Narrow (Modern Sans-Serif)</option>
+                  <option value="Verdana, sans-serif">Verdana (Wide Sans-Serif)</option>
+                  <option value="Tahoma, sans-serif">Tahoma (Sans-Serif)</option>
+                  <option value="'Times New Roman', serif">Times New Roman (Serif)</option>
+                  <option value="Georgia, serif">Georgia (Serif)</option>
+                  <option value="'Courier New', monospace">Courier New (Monospace)</option>
+                  <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans MS (Dyslexia Friendly)</option>
+                  <option value="'Bangers', cursive">Bangers (Display Font)</option>
+                </select>
+              </div>
+              <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
+              
+              <!-- Alignment & Grid Options -->
+              <div class="field-row">
+                <div class="toggle-row" style="margin-bottom: 4px;">
+                  <input type="checkbox" id="snapGrid" onchange="drawCanvas()">
+                  <label for="snapGrid">Snap to Grid</label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label style="font-size: 8.5pt; color: var(--input-label); min-width: 55px;">Grid Size</label>
+                  <input type="range" id="snapSizeSlider" min="2" max="100" value="9" style="flex: 1;" oninput="document.getElementById('snapSize').value = this.value; drawCanvas();">
+                  <input type="number" id="snapSize" value="9" style="width: 48px; padding: 2px 4px;" oninput="document.getElementById('snapSizeSlider').value = this.value; drawCanvas();">
+                </div>
+              </div>
+              <div class="toggle-row" style="margin-top: 10px;">
+                <input type="checkbox" id="smartGuides" checked onchange="drawCanvas()">
+                <label for="smartGuides">Smart Alignment Guides</label>
+              </div>
+              <div class="toggle-row" style="margin-top: 8px;">
+                <input type="checkbox" id="showMargins" checked onchange="drawCanvas()">
+                <label for="showMargins" style="color: #64748b;">Show .25" Safe Margins</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <div class="opt-group-header-left">
+                <i class="ti ti-plus"></i>
+                <span class="opt-group-title">Insert Elements</span>
+              </div>
+            </div>
+            <div class="opt-group-body">
+              <div class="grid-2">
+                <button class="btn btn-secondary" onclick="addElement('box')"><i class="ti ti-square"></i> Blank Box</button>
+                <button class="btn btn-secondary" onclick="addElement('text')"><i class="ti ti-typography"></i> Text Block</button>
+                <button class="btn btn-secondary" onclick="addElement('table')"><i class="ti ti-table"></i> Data Table</button>
+                <button class="btn btn-secondary" onclick="addPageNumber()"><i class="ti ti-file-digit"></i> Page Number</button>
+              </div>
+              <div class="btn-row" style="margin-top: 8px;">
+                <button class="btn btn-secondary" style="width: 100%;" onclick="document.getElementById('imgUpload').click()"><i class="ti ti-photo"></i> Upload Image File</button>
+              </div>
+              <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
+              <div class="grid-2">
+                <button class="btn btn-secondary" onclick="loadTemplate('cornell')"><i class="ti ti-layout-sidebar"></i> Cornell Template</button>
+                <button class="btn btn-secondary" onclick="loadTemplate('frayer')"><i class="ti ti-layout-grid"></i> Frayer Template</button>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-danger" onclick="clearCanvas()" style="width: 100%;"><i class="ti ti-trash"></i> Clear Canvas</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROPERTIES PANEL -->
+          <div class="opt-group hidden" id="propPanel">
+            <div class="opt-group-header">
+              <div class="opt-group-header-left">
+                <i class="ti ti-adjustments"></i>
+                <span class="opt-group-title">Element Properties</span>
+              </div>
+            </div>
+            <div class="opt-group-body">
+              
+              <div id="boxProps" class="hidden">
+                <div class="field-row">
+                  <label for="propLabel">Header Label</label>
+                  <input type="text" id="propLabel" oninput="updateSelectedElement()" onchange="pushHistory()">
+                </div>
+                <div class="field-row">
+                  <label for="propBgStyle">Internal Pattern</label>
+                  <select id="propBgStyle" onchange="updateSelectedElement(); pushHistory();">
+                    <option value="none">Blank (None)</option>
+                    <option value="lines">Writing Lines</option>
+                    <option value="grid">Graphing Grid</option>
+                  </select>
+                </div>
+                <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
+              </div>
+
+              <div id="tableProps" class="hidden">
+                <div class="grid-2" style="margin-bottom: 10px;">
+                  <div class="field-row">
+                    <label>Rows</label>
+                    <input type="number" id="propRows" min="1" onchange="updateSelectedElement(); pushHistory();">
+                  </div>
+                  <div class="field-row">
+                    <label>Cols</label>
+                    <input type="number" id="propCols" min="1" onchange="updateSelectedElement(); pushHistory();">
+                  </div>
+                </div>
+                <hr style="border:0; border-top:1px solid var(--card-border); margin: 10px 0;">
+              </div>
+
+              <div class="field-row" id="textPropRow" style="margin-bottom:0;">
+                
+                <!-- Table Cell Focus UI -->
+                <div id="tableCellSettings" class="cell-header-toggle hidden">
+                  <span id="activeCellLabel">Cell R1:C1</span>
+                  <select id="fmtTarget" onchange="selectElement(state.selectedId)" style="font-size: 8.5pt; padding: 2px 4px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <option value="cell">Format Cell</option>
+                    <option value="table">Format Table</option>
+                  </select>
+                </div>
+
+                <!-- Formatting Toolbar -->
+                <div class="format-bar">
+                  <input type="number" id="fmtSize" value="16" style="width: 45px; height: 24px; padding: 0 4px;" title="Font Size" onchange="updateFormat('size', this.value)">
+                  <div class="fmt-divider"></div>
+                  <button class="fmt-btn" id="fmtB" onclick="toggleFormat('bold')" title="Bold"><i class="ti ti-bold"></i></button>
+                  <button class="fmt-btn" id="fmtI" onclick="toggleFormat('italic')" title="Italic"><i class="ti ti-italic"></i></button>
+                  <button class="fmt-btn" id="fmtU" onclick="toggleFormat('underline')" title="Underline"><i class="ti ti-underline"></i></button>
+                  <button class="fmt-btn" id="fmtS" onclick="toggleFormat('strike')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
+                  <div class="fmt-divider"></div>
+                  
+                  <div class="dropdown-custom">
+                    <button class="fmt-btn" onclick="toggleDropdown('mathMenu')" title="Math Symbols"><i class="ti ti-math"></i></button>
+                    <div class="dropdown-menu" id="mathMenu">
+                      <div class="char-grid">
+                        <div class="char-btn" onclick="insertChar('±')">±</div>
+                        <div class="char-btn" onclick="insertChar('×')">×</div>
+                        <div class="char-btn" onclick="insertChar('÷')">÷</div>
+                        <div class="char-btn" onclick="insertChar('√')">√</div>
+                        <div class="char-btn" onclick="insertChar('∞')">∞</div>
+                        <div class="char-btn" onclick="insertChar('≈')">≈</div>
+                        <div class="char-btn" onclick="insertChar('≠')">≠</div>
+                        <div class="char-btn" onclick="insertChar('≤')">≤</div>
+                        <div class="char-btn" onclick="insertChar('≥')">≥</div>
+                        <div class="char-btn" onclick="insertChar('π')">π</div>
+                        <div class="char-btn" onclick="insertChar('Σ')">Σ</div>
+                        <div class="char-btn" onclick="insertChar('Δ')">Δ</div>
+                        <div class="char-btn" onclick="insertChar('∫')">∫</div>
+                        <div class="char-btn" onclick="insertChar('°')">°</div>
+                        <div class="char-btn" onclick="insertChar('μ')">μ</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dropdown-custom">
+                    <button class="fmt-btn" onclick="toggleDropdown('greekMenu')" title="Greek Letters">α</button>
+                    <div class="dropdown-menu" id="greekMenu">
+                      <div class="char-grid">
+                        <div class="char-btn" onclick="insertChar('α')">α</div>
+                        <div class="char-btn" onclick="insertChar('β')">β</div>
+                        <div class="char-btn" onclick="insertChar('γ')">γ</div>
+                        <div class="char-btn" onclick="insertChar('δ')">δ</div>
+                        <div class="char-btn" onclick="insertChar('ε')">ε</div>
+                        <div class="char-btn" onclick="insertChar('θ')">θ</div>
+                        <div class="char-btn" onclick="insertChar('λ')">λ</div>
+                        <div class="char-btn" onclick="insertChar('π')">π</div>
+                        <div class="char-btn" onclick="insertChar('ρ')">ρ</div>
+                        <div class="char-btn" onclick="insertChar('σ')">σ</div>
+                        <div class="char-btn" onclick="insertChar('τ')">τ</div>
+                        <div class="char-btn" onclick="insertChar('φ')">φ</div>
+                        <div class="char-btn" onclick="insertChar('ω')">ω</div>
+                        <div class="char-btn" onclick="insertChar('Ω')">Ω</div>
+                        <div class="char-btn" onclick="insertChar('Δ')">Δ</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button class="fmt-btn" onclick="insertUnicode('sup')" title="Superscript (Selection)"><i class="ti ti-superscript"></i></button>
+                  <button class="fmt-btn" onclick="insertUnicode('sub')" title="Subscript (Selection)"><i class="ti ti-subscript"></i></button>
+                  <div class="fmt-divider"></div>
+                  <button class="fmt-btn" onclick="insertList('bullet')" title="Bullet List"><i class="ti ti-list"></i></button>
+                  <button class="fmt-btn" onclick="insertList('number')" title="Numbered List"><i class="ti ti-list-numbers"></i></button>
+                  <button class="fmt-btn" onclick="insertList('outline')" title="Outline List"><i class="ti ti-list-tree"></i></button>
+                  <button class="fmt-btn" onclick="insertList('check')" title="Checklist"><i class="ti ti-list-check"></i></button>
+                  <div class="fmt-divider"></div>
+                  <button class="fmt-btn" id="fmtL" onclick="updateFormat('align', 'left')" title="Align Left"><i class="ti ti-align-left"></i></button>
+                  <button class="fmt-btn" id="fmtC" onclick="updateFormat('align', 'center')" title="Align Center"><i class="ti ti-align-center"></i></button>
+                  <button class="fmt-btn" id="fmtR" onclick="updateFormat('align', 'right')" title="Align Right"><i class="ti ti-align-right"></i></button>
+                  <div class="fmt-divider"></div>
+                  <button class="fmt-btn" id="fmtVT" onclick="updateFormat('valign', 'top')" title="Vertical Align Top"><i class="ti ti-layout-align-top"></i></button>
+                  <button class="fmt-btn" id="fmtVM" onclick="updateFormat('valign', 'middle')" title="Vertical Align Middle"><i class="ti ti-layout-align-middle"></i></button>
+                  <button class="fmt-btn" id="fmtVB" onclick="updateFormat('valign', 'bottom')" title="Vertical Align Bottom"><i class="ti ti-layout-align-bottom"></i></button>
+                </div>
+                <textarea id="propText" rows="4" oninput="updateSelectedElement()" onchange="pushHistory()"></textarea>
+              </div>
+              
+              <div class="toggle-row" style="margin-top: 12px;">
+                <input type="checkbox" id="propShowBorder" onchange="updateSelectedElement(); pushHistory();">
+                <label for="propShowBorder">Show Border Stroke</label>
+              </div>
+
+              <div class="btn-row">
+                <button class="btn btn-danger" onclick="deleteSelected()"><i class="ti ti-trash"></i> Delete Selected</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+        
+        <!-- STAGE -->
+        <section class="split-right" id="stage-panel">
+          <div class="stage-header">
+            <div class="export-tray">
+              <button class="btn btn-primary" onclick="downloadPDF()"><i class="ti ti-file-type-pdf"></i> Download PDF</button>
+              <button class="btn btn-green" id="copyBtn" onclick="copyPNG()"><i class="ti ti-copy"></i> Copy to Clipboard</button>
+              <span class="copy-feedback" id="copyFeedback"><i class="ti ti-check"></i> Copied!</span>
+            </div>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <button class="btn btn-secondary" onclick="setZoom(state.zoom - 0.1)" title="Zoom Out"><i class="ti ti-minus"></i></button>
+              <span style="font-size: 9.5pt; width: 45px; text-align: center; font-weight: bold; color: var(--input-text);" id="zoomLabel">100%</span>
+              <button class="btn btn-secondary" onclick="setZoom(state.zoom + 0.1)" title="Zoom In"><i class="ti ti-plus"></i></button>
+              <button class="btn btn-secondary" onclick="fitToWidth()" title="Fit Width"><i class="ti ti-arrows-maximize"></i> Fit Width</button>
+              <button class="btn btn-secondary" onclick="fitToPage()" title="Fit Page"><i class="ti ti-maximize"></i> Fit Page</button>
+            </div>
+          </div>
+
+          <div class="canvas-viewport" id="canvasViewport">
+            <div class="canvas-inner-wrapper">
+              <canvas id="mainCanvas"></canvas>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const DPI = 96;
+    
+    // Unicode Maps for Sub/Superscript
+    const SUPER_MAP = { '0':'⁰', '1':'¹', '2':'²', '3':'³', '4':'⁴', '5':'⁵', '6':'⁶', '7':'⁷', '8':'⁸', '9':'⁹', '+':'⁺', '-':'⁻', '=':'⁼', '(':'⁽', ')':'⁾', 'a':'ᵃ', 'b':'ᵇ', 'c':'ᶜ', 'd':'ᵈ', 'e':'ᵉ', 'm':'ᵐ', 'n':'ⁿ', 'p':'ᵖ', 'r':'ʳ', 's':'ˢ', 't':'ᵗ', 'x':'ˣ', 'y':'ʸ', 'z':'ᶻ' };
+    const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ₙ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
+
+    let state = {
+      elements: [], 
+      selectedId: null,
+      selectedCell: { r: 0, c: 0 }, 
+      zoom: 1.0,
+      paper: { widthInches: 6.25, heightInches: 8.5 },
+      globalFont: "Arial, sans-serif",
+      isExporting: false,
+      activeGuides: [] 
+    };
+
+    // --- History Engine ---
+    let historyStack = [];
+    let historyIndex = -1;
+
+    function pushHistory() {
+      const snap = JSON.stringify({ elements: state.elements, paper: state.paper, font: state.globalFont });
+      if (historyIndex >= 0 && historyStack[historyIndex] === snap) return;
+      historyStack = historyStack.slice(0, historyIndex + 1);
+      historyStack.push(snap);
+      historyIndex++;
+      updateHistoryButtons();
+    }
+
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        restoreState(historyStack[historyIndex]);
+      }
+    }
+
+    function redo() {
+      if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        restoreState(historyStack[historyIndex]);
+      }
+    }
+
+    function restoreState(snapStr) {
+      const snap = JSON.parse(snapStr);
+      state.elements = snap.elements;
+      state.paper = snap.paper;
+      state.globalFont = snap.font;
+      
+      document.getElementById('globalFont').value = state.globalFont;
+      
+      let paperVal = 'custom';
+      if (state.paper.widthInches === 6.25 && state.paper.heightInches === 8.5) paperVal = 'notebook';
+      else if (state.paper.widthInches === 7 && state.paper.heightInches === 9) paperVal = 'full-notebook';
+      else if (state.paper.widthInches === 8.5 && state.paper.heightInches === 11) paperVal = 'letter';
+      document.getElementById('paperSize').value = paperVal;
+      if (paperVal === 'custom') {
+        document.getElementById('customSizeRow').classList.remove('hidden');
+        document.getElementById('customW').value = state.paper.widthInches;
+        document.getElementById('customH').value = state.paper.heightInches;
+      } else {
+        document.getElementById('customSizeRow').classList.add('hidden');
+      }
+
+      state.elements.forEach(el => {
+        if (el.type === 'image' && el.img && !el.img.complete) {
+           const src = el.img.src || el.img;
+           el.img = new Image();
+           el.img.src = src;
+           el.img.onload = drawCanvas;
+        }
+        if (el.type === 'table' && !el.cells) {
+           el.cells = buildCells(null, el.rows, el.cols);
+           el.cells[0][0].text = el.text || "";
+        }
+      });
+
+      canvas.width = Math.max(8.5, state.paper.widthInches) * DPI;
+      canvas.height = Math.max(11, state.paper.heightInches) * DPI;
+      
+      if (!state.elements.find(e => e.id === state.selectedId)) selectElement(null);
+      else selectElement(state.selectedId);
+      
+      applyZoom(); drawCanvas(); updateHistoryButtons();
+    }
+
+    function updateHistoryButtons() {
+      document.getElementById('btnUndo').disabled = historyIndex <= 0;
+      document.getElementById('btnRedo').disabled = historyIndex >= historyStack.length - 1;
+    }
+
+    // --- File Management & Local Settings ---
+    function loadSettings() {
+      const saved = localStorage.getItem('humbleNoteDefaultSize');
+      if (saved) document.getElementById('paperSize').value = saved;
+      const cw = localStorage.getItem('humbleNoteCustomW');
+      if (cw) document.getElementById('customW').value = cw;
+      const ch = localStorage.getItem('humbleNoteCustomH');
+      if (ch) document.getElementById('customH').value = ch;
+      const f = localStorage.getItem('humbleNoteGlobalFont');
+      if (f) {
+        document.getElementById('globalFont').value = f;
+        state.globalFont = f;
+      }
+    }
+
+    function newProject() {
+      if(confirm("Create a new document? Any unsaved changes will be lost.")) {
+        clearCanvas();
+        historyStack = []; historyIndex = -1;
+        pushHistory();
+      }
+    }
+
+    function saveProject() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(historyStack[historyIndex]);
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `NoteBuilder_${getTimestamp()}.humblenote`);
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    function openProject(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const snapStr = event.target.result;
+          restoreState(snapStr);
+          historyStack = [snapStr]; historyIndex = 0; updateHistoryButtons();
+        } catch (err) { alert("Error loading file."); }
+      }
+      reader.readAsText(file); e.target.value = '';
+    }
+
+    // --- Canvas Setup ---
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const viewport = document.getElementById('canvasViewport');
+
+    let isDragging = false; let isResizing = false;
+    let dragOffsetX = 0; let dragOffsetY = 0;
+    const HANDLE_SIZE = 12;
+
+    function defaultFormat() { return { bold: false, italic: false, underline: false, strike: false, size: 16, align: 'left', valign: 'top' }; }
+
+    function handlePaperSizeChange(isUserAction = true) {
+      const sizeStr = document.getElementById('paperSize').value;
+      let newW = 8.5, newH = 11;
+      if (sizeStr === 'notebook') { newW = 6.25; newH = 8.5; }
+      else if (sizeStr === 'full-notebook') { newW = 7; newH = 9; }
+      else if (sizeStr === 'custom') { 
+          newW = parseFloat(document.getElementById('customW').value) || 8.5; 
+          newH = parseFloat(document.getElementById('customH').value) || 11; 
+      }
+
+      const oldW = state.paper.widthInches;
+      const oldH = state.paper.heightInches;
+
+      if (isUserAction && state.elements.length > 0 && (newW !== oldW || newH !== oldH)) {
+          if(confirm("Do you want to scale your existing content to match the new paper size?")) {
+              const scaleX = newW / oldW;
+              const scaleY = newH / oldH;
+              const scaleFont = Math.min(scaleX, scaleY);
+              state.elements.forEach(el => {
+                  el.x *= scaleX; el.y *= scaleY; el.w *= scaleX; el.h *= scaleY;
+                  if (el.format && el.format.size) el.format.size = Math.max(8, Math.round(el.format.size * scaleFont));
+                  if (el.type === 'table' && el.cells) {
+                      el.cells.forEach(row => row.forEach(c => {
+                          if (c.format && c.format.size) c.format.size = Math.max(8, Math.round(c.format.size * scaleFont));
+                      }));
+                  }
+              });
+          }
+      }
+
+      localStorage.setItem('humbleNoteDefaultSize', sizeStr);
+      localStorage.setItem('humbleNoteCustomW', document.getElementById('customW').value);
+      localStorage.setItem('humbleNoteCustomH', document.getElementById('customH').value);
+
+      const customRow = document.getElementById('customSizeRow');
+      if (sizeStr === 'custom') customRow.classList.remove('hidden');
+      else customRow.classList.add('hidden');
+
+      state.paper.widthInches = newW;
+      state.paper.heightInches = newH;
+      
+      canvas.width = Math.max(8.5, state.paper.widthInches) * DPI;
+      canvas.height = Math.max(11, state.paper.heightInches) * DPI;
+      
+      applyZoom(); drawCanvas();
+      if (isUserAction) pushHistory();
+    }
+
+    function updateFont() { 
+      state.globalFont = document.getElementById('globalFont').value; 
+      localStorage.setItem('humbleNoteGlobalFont', state.globalFont);
+      drawCanvas(); 
+    }
+
+    function setZoom(level) { state.zoom = Math.max(0.25, Math.min(3.0, level)); applyZoom(); }
+    function fitToPage() { setZoom(Math.min((viewport.clientWidth - 80) / canvas.width, (viewport.clientHeight - 80) / canvas.height)); }
+    function fitToWidth() { setZoom((viewport.clientWidth - 80) / canvas.width); }
+    function applyZoom() {
+      document.getElementById('zoomLabel').innerText = Math.round(state.zoom * 100) + '%';
+      canvas.style.width = (canvas.width * state.zoom) + "px";
+      canvas.style.height = (canvas.height * state.zoom) + "px";
+    }
+
+    viewport.addEventListener('wheel', e => {
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); setZoom(state.zoom + (e.deltaY > 0 ? -0.1 : 0.1)); }
+    }, { passive: false });
+
+    // --- Templates & Elements ---
+    function generateId() { return Math.random().toString(36).substr(2, 9); }
+    
+    function buildCells(oldCells, rows, cols) {
+      const newCells = [];
+      for (let r=0; r<rows; r++) {
+        const newRow = [];
+        for (let c=0; c<cols; c++) {
+          if (oldCells && oldCells[r] && oldCells[r][c]) newRow.push(oldCells[r][c]);
+          else newRow.push({ text: '', format: null });
+        }
+        newCells.push(newRow);
+      }
+      return newCells;
+    }
+
+    function loadTemplate(type) {
+      state.elements = [];
+      const m = 0.25 * DPI; 
+      const safeW = (state.paper.widthInches * DPI) - (m*2);
+      const safeH = (state.paper.heightInches * DPI) - (m*2);
+
+      if (type === 'cornell') {
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m, w: safeW, h: safeH * 0.1, label: 'Topic / Objective', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH * 0.1 + 15, w: safeW * 0.3 - 5, h: safeH * 0.7 - 30, label: 'Cues / Questions', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW * 0.3 + 5, y: m + safeH * 0.1 + 15, w: safeW * 0.7 - 5, h: safeH * 0.7 - 30, label: 'Notes', text: '', bgStyle: 'lines', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH * 0.8, w: safeW, h: safeH * 0.2, label: 'Summary', text: '', bgStyle: 'lines', showBorder: true, borderWidth: 2, format: defaultFormat() });
+      } else if (type === 'frayer') {
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m, w: safeW/2, h: safeH/2, label: 'Definition', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m, w: safeW/2, h: safeH/2, label: 'Characteristics', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Examples', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Non-Examples', text: '', bgStyle: 'none', showBorder: true, borderWidth: 2, format: defaultFormat() });
+        const cw = 220, ch = 80;
+        let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.bold = true; cFormat.valign = 'middle';
+        state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', text: 'Vocabulary Word', bgStyle: 'none', showBorder: true, borderWidth: 2, format: cFormat });
+      }
+      selectElement(null); drawCanvas(); pushHistory();
+    }
+
+    function addElement(type) {
+      const el = { id: generateId(), type: type, x: 100, y: 100, format: defaultFormat(), showBorder: true, borderWidth: 2 };
+      if (type === 'box') { el.w = 300; el.h = 150; el.label = ""; el.bgStyle = "none"; el.text = ""; } 
+      else if (type === 'text') { el.w = 300; el.h = 30; el.showBorder = false; el.text = ""; }
+      else if (type === 'table') { el.w = 300; el.h = 150; el.rows = 3; el.cols = 3; el.cells = buildCells(null, 3, 3); }
+      state.elements.push(el); state.selectedCell = {r:0, c:0}; selectElement(el.id); drawCanvas(); pushHistory();
+    }
+
+    function addPageNumber() {
+      const m = 0.25 * DPI;
+      const w = 60; const h = 24;
+      const x = (state.paper.widthInches * DPI) - m - w;
+      const y = (state.paper.heightInches * DPI) - m - h;
+      
+      let pFormat = defaultFormat(); pFormat.size = 9; pFormat.align = 'center'; pFormat.valign = 'middle';
+      const el = { id: generateId(), type: 'box', x: x, y: y, w: w, h: h, text: "Pg. ", label: "", bgStyle: "none", showBorder: true, borderWidth: 1, format: pFormat };
+      state.elements.push(el); selectElement(el.id); drawCanvas(); pushHistory();
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const cvs = document.createElement('canvas');
+          cvs.width = img.width; cvs.height = img.height;
+          cvs.getContext('2d').drawImage(img, 0, 0);
+          const dataURL = cvs.toDataURL();
+          const storedImg = new Image(); storedImg.src = dataURL;
+          const el = { id: generateId(), type: 'image', x: 100, y: 100, w: 300, h: 300 * (img.height / img.width), img: storedImg, showBorder: false, borderWidth: 2 };
+          state.elements.push(el); selectElement(el.id); drawCanvas(); pushHistory();
+        }
+        img.src = event.target.result;
+      }
+      reader.readAsDataURL(file); e.target.value = '';
+    }
+
+    function clearCanvas() { state.elements = []; selectElement(null); drawCanvas(); pushHistory(); }
+
+    // --- Textbox Auto-List Keydown ---
+    document.getElementById('propText').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const ta = this;
+        const start = ta.selectionStart;
+        const textBefore = ta.value.substring(0, start);
+        const textAfter = ta.value.substring(ta.selectionEnd);
+        
+        const lastNewline = textBefore.lastIndexOf('\n');
+        const currentLine = textBefore.substring(lastNewline + 1);
+        
+        const match = currentLine.match(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)(.*)$/);
+        
+        if (match) {
+          e.preventDefault();
+          const m = match[1];
+          const sep = match[2];
+          const content = match[3];
+
+          if (content.trim() === '') {
+            ta.value = textBefore.substring(0, lastNewline === -1 ? 0 : lastNewline + 1) + textAfter;
+            ta.selectionStart = ta.selectionEnd = lastNewline === -1 ? 0 : lastNewline + 1;
+          } else {
+            let nextMarker = m;
+            if (m === '•' || m === '☐') nextMarker = m;
+            else if (/^\d+$/.test(m)) nextMarker = (parseInt(m) + 1).toString();
+            else {
+              const rU = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+              const rL = ['i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];
+              if (rU.includes(m)) nextMarker = rU[rU.indexOf(m)+1] || m;
+              else if (rL.includes(m)) nextMarker = rL[rL.indexOf(m)+1] || m;
+              else if (/^[A-Z]$/.test(m)) nextMarker = String.fromCharCode(m.charCodeAt(0) + 1);
+              else if (/^[a-z]$/.test(m)) nextMarker = String.fromCharCode(m.charCodeAt(0) + 1);
+            }
+            const insertStr = '\n' + nextMarker + sep;
+            ta.value = textBefore + insertStr + textAfter;
+            ta.selectionStart = ta.selectionEnd = start + insertStr.length;
+          }
+          updateSelectedElement();
+          pushHistory();
+        }
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        const tag = document.activeElement.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea') return;
+        if (state.selectedId) deleteSelected();
+      }
+    });
+
+    // --- Properties & Text Formatting ---
+    function getActiveText(el) {
+      if (el.type === 'table') {
+         if (state.selectedCell.r < el.rows && state.selectedCell.c < el.cols) {
+            return el.cells[state.selectedCell.r][state.selectedCell.c].text || "";
+         }
+         return "";
+      }
+      return el.text || "";
+    }
+
+    function setActiveText(el, val) {
+      if (el.type === 'table') {
+         if (state.selectedCell.r < el.rows && state.selectedCell.c < el.cols) {
+            el.cells[state.selectedCell.r][state.selectedCell.c].text = val;
+         }
+      } else { el.text = val; }
+    }
+
+    function selectElement(id) {
+      state.selectedId = id;
+      const panel = document.getElementById('propPanel');
+      if (!id) { panel.classList.add('hidden'); return; }
+      
+      const el = state.elements.find(e => e.id === id);
+      if (!el) return;
+      
+      if (el.format && !el.format.valign) el.format.valign = 'top';
+
+      panel.classList.remove('hidden');
+      document.getElementById('propText').value = getActiveText(el);
+      document.getElementById('propShowBorder').checked = el.showBorder !== false;
+      document.getElementById('textPropRow').style.display = el.type === 'image' ? 'none' : 'flex';
+      
+      const boxP = document.getElementById('boxProps'), tblP = document.getElementById('tableProps'), tblCellUI = document.getElementById('tableCellSettings');
+      boxP.classList.add('hidden'); tblP.classList.add('hidden'); tblCellUI.classList.add('hidden');
+
+      if (el.type === 'box') {
+        boxP.classList.remove('hidden');
+        document.getElementById('propLabel').value = el.label || "";
+        document.getElementById('propBgStyle').value = el.bgStyle || "none";
+      } else if (el.type === 'table') {
+        tblP.classList.remove('hidden');
+        tblCellUI.classList.remove('hidden');
+        document.getElementById('propRows').value = el.rows || 3;
+        document.getElementById('propCols').value = el.cols || 3;
+        document.getElementById('activeCellLabel').innerText = `Cell R${state.selectedCell.r + 1}:C${state.selectedCell.c + 1}`;
+      }
+
+      let fmt = el.format;
+      if (el.type === 'table') {
+         const target = document.getElementById('fmtTarget').value;
+         if (target === 'cell' && state.selectedCell.r < el.rows && state.selectedCell.c < el.cols) {
+            const cFmt = el.cells[state.selectedCell.r][state.selectedCell.c].format;
+            fmt = cFmt ? { ...el.format, ...cFmt } : el.format;
+         }
+      }
+
+      if (fmt) {
+        document.getElementById('fmtSize').value = fmt.size;
+        document.getElementById('fmtB').classList.toggle('active', fmt.bold);
+        document.getElementById('fmtI').classList.toggle('active', fmt.italic);
+        document.getElementById('fmtU').classList.toggle('active', fmt.underline);
+        document.getElementById('fmtS').classList.toggle('active', fmt.strike);
+        document.getElementById('fmtL').classList.toggle('active', fmt.align === 'left');
+        document.getElementById('fmtC').classList.toggle('active', fmt.align === 'center');
+        document.getElementById('fmtR').classList.toggle('active', fmt.align === 'right');
+        document.getElementById('fmtVT').classList.toggle('active', fmt.valign === 'top');
+        document.getElementById('fmtVM').classList.toggle('active', fmt.valign === 'middle');
+        document.getElementById('fmtVB').classList.toggle('active', fmt.valign === 'bottom');
+      }
+    }
+
+    function updateSelectedElement() {
+      if (!state.selectedId) return;
+      const el = state.elements.find(e => e.id === state.selectedId);
+      if (!el) return;
+      
+      setActiveText(el, document.getElementById('propText').value);
+      el.showBorder = document.getElementById('propShowBorder').checked;
+      
+      if (el.type === 'box') {
+        el.label = document.getElementById('propLabel').value;
+        el.bgStyle = document.getElementById('propBgStyle').value;
+      } else if (el.type === 'table') {
+        const newRows = Math.max(1, parseInt(document.getElementById('propRows').value) || 1);
+        const newCols = Math.max(1, parseInt(document.getElementById('propCols').value) || 1);
+        if (newRows !== el.rows || newCols !== el.cols) {
+           el.rows = newRows; el.cols = newCols;
+           el.cells = buildCells(el.cells, el.rows, el.cols);
+           state.selectedCell.r = Math.min(state.selectedCell.r, el.rows - 1);
+           state.selectedCell.c = Math.min(state.selectedCell.c, el.cols - 1);
+           document.getElementById('activeCellLabel').innerText = `Cell R${state.selectedCell.r + 1}:C${state.selectedCell.c + 1}`;
+        }
+      }
+      drawCanvas();
+    }
+
+    function toggleFormat(type) {
+      if (!state.selectedId) return;
+      const el = state.elements.find(e => e.id === state.selectedId);
+      if (!el) return;
+
+      if (el.type === 'table') {
+        const target = document.getElementById('fmtTarget').value;
+        if (target === 'table') {
+           el.format[type] = !el.format[type];
+        } else {
+           const cell = el.cells[state.selectedCell.r][state.selectedCell.c];
+           if (!cell.format) cell.format = { ...el.format };
+           cell.format[type] = !cell.format[type];
+        }
+      } else {
+        if (el.format) el.format[type] = !el.format[type];
+      }
+      selectElement(state.selectedId); drawCanvas(); pushHistory();
+    }
+
+    function updateFormat(type, val) {
+      if (!state.selectedId) return;
+      const el = state.elements.find(e => e.id === state.selectedId);
+      if (!el) return;
+
+      const v = (type === 'size') ? parseInt(val) : val;
+
+      if (el.type === 'table') {
+        const target = document.getElementById('fmtTarget').value;
+        if (target === 'table') {
+           el.format[type] = v;
+        } else {
+           const cell = el.cells[state.selectedCell.r][state.selectedCell.c];
+           if (!cell.format) cell.format = { ...el.format };
+           cell.format[type] = v;
+        }
+      } else {
+        if (el.format) el.format[type] = v;
+      }
+      selectElement(state.selectedId); drawCanvas(); pushHistory();
+    }
+
+    function insertUnicode(type) {
+      const ta = document.getElementById('propText');
+      const start = ta.selectionStart; const end = ta.selectionEnd;
+      if (start === end) return;
+      const selected = ta.value.substring(start, end);
+      const map = type === 'sub' ? SUB_MAP : SUPER_MAP;
+      const converted = selected.split('').map(c => map[c.toLowerCase()] || c).join('');
+      ta.value = ta.value.substring(0, start) + converted + ta.value.substring(end);
+      updateSelectedElement(); pushHistory();
+    }
+
+    function insertList(type) {
+      const ta = document.getElementById('propText');
+      const start = ta.selectionStart; const end = ta.selectionEnd;
+      const pre = ta.value.substring(0, start); const post = ta.value.substring(end);
+      const selected = ta.value.substring(start, end);
+      
+      if (start === end) {
+         const lastNewline = pre.lastIndexOf('\n');
+         const lineStart = lastNewline === -1 ? 0 : lastNewline + 1;
+         const nextNewline = post.indexOf('\n');
+         const lineEnd = nextNewline === -1 ? ta.value.length : end + nextNewline;
+         const line = ta.value.substring(lineStart, lineEnd);
+         
+         const stripped = line.replace(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)/, '');
+         let marker = '• ';
+         if (type === 'check') marker = '☐ ';
+         if (type === 'number') marker = '1. ';
+         if (type === 'outline') marker = 'I. ';
+         
+         const newLine = marker + stripped;
+         ta.value = ta.value.substring(0, lineStart) + newLine + ta.value.substring(lineEnd);
+         ta.selectionStart = ta.selectionEnd = lineStart + marker.length;
+      } else {
+         let lines = selected.split('\n');
+         lines = lines.map(l => l.replace(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)/, ''));
+         if (type === 'bullet') lines = lines.map(l => '• ' + l);
+         else if (type === 'check') lines = lines.map(l => '☐ ' + l);
+         else if (type === 'number') lines = lines.map((l, i) => (i+1) + '. ' + l);
+         else if (type === 'outline') {
+           const prefixes = ['I. ', 'A. ', '1. ', 'a. ', 'i. '];
+           lines = lines.map((l, i) => (prefixes[i % prefixes.length]) + l);
+         }
+         let insertText = lines.join('\n');
+         ta.value = pre + insertText + post;
+         ta.selectionStart = start; ta.selectionEnd = start + insertText.length;
+      }
+      updateSelectedElement(); pushHistory(); ta.focus();
+    }
+
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      const isOpen = menu.classList.contains('open');
+      closeAllDropdowns();
+      if (!isOpen) menu.classList.add('open');
+    }
+
+    function closeAllDropdowns() { document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open')); }
+
+    function insertChar(char) {
+      const ta = document.getElementById('propText');
+      const start = ta.selectionStart; const end = ta.selectionEnd;
+      ta.value = ta.value.substring(0, start) + char + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + char.length;
+      updateSelectedElement(); pushHistory(); ta.focus(); closeAllDropdowns();
+    }
+
+    document.addEventListener('click', function(e) { if (!e.target.closest('.dropdown-custom')) closeAllDropdowns(); });
+
+    function deleteSelected() {
+      if (!state.selectedId) return;
+      state.elements = state.elements.filter(e => e.id !== state.selectedId);
+      selectElement(null); drawCanvas(); pushHistory();
+    }
+
+    // --- Interactive Engine & Smart Snapping ---
+    function getMousePos(evt) {
+      const r = canvas.getBoundingClientRect();
+      return { x: (evt.clientX - r.left) * (canvas.width / r.width), y: (evt.clientY - r.top) * (canvas.height / r.height) };
+    }
+
+    function calculateSnaps(el) {
+      state.activeGuides = [];
+      if (!document.getElementById('smartGuides').checked) return { x: null, y: null };
+      
+      const snapDist = 10;
+      let snapX = null, snapY = null;
+      let snappedX = false, snappedY = false;
+
+      const eL = el.x, eR = el.x + el.w, eCX = el.x + (el.w/2);
+      const eT = el.y, eB = el.y + el.h, eCY = el.y + (el.h/2);
+
+      for (const other of state.elements) {
+        if (other.id === el.id) continue;
+        const oL = other.x, oR = other.x + other.w, oCX = other.x + (other.w/2);
+        const oT = other.y, oB = other.y + other.h, oCY = other.y + (other.h/2);
+
+        if (!snappedX) {
+          const vChecks = [ {t: eL, o: oL}, {t: eL, o: oR}, {t: eL, o: oCX}, {t: eR, o: oL}, {t: eR, o: oR}, {t: eR, o: oCX}, {t: eCX, o: oL}, {t: eCX, o: oR}, {t: eCX, o: oCX} ];
+          for (const c of vChecks) {
+            if (Math.abs(c.t - c.o) < snapDist) {
+              if (c.t === eL) snapX = c.o; else if (c.t === eR) snapX = c.o - el.w; else if (c.t === eCX) snapX = c.o - (el.w/2);
+              state.activeGuides.push({type: 'v', pos: c.o}); snappedX = true; break; 
+            }
+          }
+        }
+
+        if (!snappedY) {
+          const hChecks = [ {t: eT, o: oT}, {t: eT, o: oB}, {t: eT, o: oCY}, {t: eB, o: oT}, {t: eB, o: oB}, {t: eB, o: oCY}, {t: eCY, o: oT}, {t: eCY, o: oB}, {t: eCY, o: oCY} ];
+          for (const c of hChecks) {
+            if (Math.abs(c.t - c.o) < snapDist) {
+              if (c.t === eT) snapY = c.o; else if (c.t === eB) snapY = c.o - el.h; else if (c.t === eCY) snapY = c.o - (el.h/2);
+              state.activeGuides.push({type: 'h', pos: c.o}); snappedY = true; break;
+            }
+          }
+        }
+        if (snappedX && snappedY) break;
+      }
+      return { x: snapX, y: snapY };
+    }
+
+    function calculateResizeSnaps(el, propW, propH) {
+      state.activeGuides = [];
+      if (!document.getElementById('smartGuides').checked) return { w: propW, h: propH };
+
+      const snapDist = 10;
+      let snapW = propW, snapH = propH;
+      let snappedW = false, snappedH = false;
+
+      for (const other of state.elements) {
+        if (other.id === el.id) continue;
+        const oL = other.x, oR = other.x + other.w, oCX = other.x + (other.w/2);
+        const oT = other.y, oB = other.y + other.h, oCY = other.y + (other.h/2);
+
+        if (!snappedW) {
+           const rightEdge = el.x + propW, centerX = el.x + propW / 2;
+           const vTargets = [oL, oR, oCX];
+           for (const t of vTargets) {
+             if (Math.abs(rightEdge - t) < snapDist) { snapW = t - el.x; state.activeGuides.push({type: 'v', pos: t}); snappedW = true; break; }
+             if (Math.abs(centerX - t) < snapDist) { snapW = (t - el.x) * 2; state.activeGuides.push({type: 'v', pos: t}); snappedW = true; break; }
+           }
+        }
+
+        if (!snappedH) {
+           const bottomEdge = el.y + propH, centerY = el.y + propH / 2;
+           const hTargets = [oT, oB, oCY];
+           for (const t of hTargets) {
+             if (Math.abs(bottomEdge - t) < snapDist) { snapH = t - el.y; state.activeGuides.push({type: 'h', pos: t}); snappedH = true; break; }
+             if (Math.abs(centerY - t) < snapDist) { snapH = (t - el.y) * 2; state.activeGuides.push({type: 'h', pos: t}); snappedH = true; break; }
+           }
+        }
+        if (snappedW && snappedH) break;
+      }
+      return { w: Math.max(20, snapW), h: Math.max(20, snapH) };
+    }
+
+    canvas.addEventListener('mousedown', function(evt) {
+      const pos = getMousePos(evt);
+      let clickedId = null; let cellClick = null;
+      isDragging = false; isResizing = false;
+
+      if (state.selectedId) {
+        const selEl = state.elements.find(e => e.id === state.selectedId);
+        if (selEl) {
+          const hX = selEl.x + selEl.w - (HANDLE_SIZE * 1.5), hY = selEl.y + selEl.h - (HANDLE_SIZE * 1.5);
+          if (pos.x >= hX && pos.x <= hX + (HANDLE_SIZE*3) && pos.y >= hY && pos.y <= hY + (HANDLE_SIZE*3)) { isResizing = true; return; }
+        }
+      }
+
+      for (let i = state.elements.length - 1; i >= 0; i--) {
+        const el = state.elements[i];
+        if (pos.x >= el.x && pos.x <= el.x + el.w && pos.y >= el.y && pos.y <= el.y + el.h) {
+          clickedId = el.id; isDragging = true;
+          dragOffsetX = pos.x - el.x; dragOffsetY = pos.y - el.y;
+          
+          if (el.type === 'table') {
+            const r = Math.floor((pos.y - el.y) / (el.h / el.rows));
+            const c = Math.floor((pos.x - el.x) / (el.w / el.cols));
+            cellClick = {r: Math.min(r, el.rows-1), c: Math.min(c, el.cols-1)};
+          }
+          break;
+        }
+      }
+
+      if (clickedId !== state.selectedId) {
+         if (cellClick) state.selectedCell = cellClick;
+         selectElement(clickedId);
+      } else if (clickedId && cellClick) {
+         state.selectedCell = cellClick;
+         selectElement(clickedId); 
+      }
+      drawCanvas();
+    });
+
+    canvas.addEventListener('mousemove', function(evt) {
+      if (!state.selectedId) return;
+      const pos = getMousePos(evt);
+      const el = state.elements.find(e => e.id === state.selectedId);
+      if (!el) return;
+
+      const useGrid = document.getElementById('snapGrid').checked;
+      const gSize = parseInt(document.getElementById('snapSize').value) || 9;
+
+      if (isResizing) {
+        let propW = Math.max(20, pos.x - el.x); 
+        let propH = Math.max(20, pos.y - el.y);
+        
+        if (useGrid) { 
+          el.w = Math.round(propW / gSize) * gSize; 
+          el.h = Math.round(propH / gSize) * gSize; 
+          state.activeGuides = [];
+        } else {
+          const resizeSnaps = calculateResizeSnaps(el, propW, propH);
+          el.w = resizeSnaps.w;
+          el.h = resizeSnaps.h;
+        }
+        drawCanvas();
+      } else if (isDragging) {
+        el.x = pos.x - dragOffsetX; el.y = pos.y - dragOffsetY;
+        
+        if (useGrid) {
+          el.x = Math.round(el.x / gSize) * gSize;
+          el.y = Math.round(el.y / gSize) * gSize;
+          state.activeGuides = [];
+        } else {
+          const snaps = calculateSnaps(el);
+          if (snaps.x !== null) el.x = snaps.x;
+          if (snaps.y !== null) el.y = snaps.y;
+        }
+        drawCanvas();
+      } else {
+        const hX = el.x + el.w - HANDLE_SIZE, hY = el.y + el.h - HANDLE_SIZE;
+        canvas.style.cursor = (pos.x >= hX && pos.x <= hX + HANDLE_SIZE*2 && pos.y >= hY && pos.y <= hY + HANDLE_SIZE*2) ? 'nwse-resize' : 'crosshair';
+      }
+    });
+
+    canvas.addEventListener('mouseup', function() { 
+      if (isDragging || isResizing) pushHistory();
+      isDragging = false; isResizing = false; state.activeGuides = []; drawCanvas(); 
+    });
+    canvas.addEventListener('mouseleave', function() { 
+      if (isDragging || isResizing) pushHistory();
+      isDragging = false; isResizing = false; state.activeGuides = []; canvas.style.cursor = 'crosshair'; drawCanvas(); 
+    });
+
+    // --- Renderer ---
+    function applyFormatToContext(ctx, format, gFont) {
+      if (!format) { ctx.font = `16px ${gFont}`; return; }
+      let fStr = "";
+      if (format.italic) fStr += "italic ";
+      if (format.bold) fStr += "bold ";
+      fStr += `${format.size || 16}px ${gFont}`;
+      ctx.font = fStr;
+    }
+
+    function calculateTextLines(ctx, text, w, format, gFont) {
+      if (!text) return [];
+      applyFormatToContext(ctx, format, gFont);
+      const paragraphs = text.split('\n');
+      const lines = [];
+
+      paragraphs.forEach(p => {
+        let indent = 0;
+        const match = p.match(/^([•☐]\s+|[IVXLCDMivxlcdm]+\.\s+|[A-Za-z]\.\s+|[0-9]+\.\s+)/);
+        if (match) { indent = ctx.measureText(match[1]).width; }
+
+        const words = p.split(' ');
+        let line = '';
+        let isFirstLine = true;
+        
+        for(let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const currentIndent = isFirstLine ? 0 : indent;
+          const maxW = w - currentIndent;
+          
+          if (ctx.measureText(testLine).width > maxW && n > 0) {
+            lines.push({ text: line, indent: currentIndent });
+            line = words[n] + ' '; 
+            isFirstLine = false;
+          } else { line = testLine; }
+        }
+        const finalIndent = isFirstLine ? 0 : indent;
+        lines.push({ text: line, indent: finalIndent });
+      });
+      return lines;
+    }
+
+    function drawFormattedText(ctx, text, startX, startY, w, availH, format, gFont) {
+      if (!text) return;
+      applyFormatToContext(ctx, format, gFont);
+      const lineHeight = (format.size || 16) * 1.3;
+      const lines = calculateTextLines(ctx, text, w, format, gFont);
+      const totalTextHeight = lines.length * lineHeight;
+
+      let yOffset = 0;
+      if (format && format.valign === 'middle') {
+        yOffset = Math.max(0, (availH - totalTextHeight) / 2);
+      } else if (format && format.valign === 'bottom') {
+        yOffset = Math.max(0, availH - totalTextHeight);
+      }
+
+      let currentY = startY + yOffset;
+
+      lines.forEach(l => {
+        drawLineAligned(ctx, l.text, startX + l.indent, currentY, w - l.indent, format);
+        currentY += lineHeight;
+      });
+    }
+
+    function drawLineAligned(ctx, text, x, y, w, format) {
+      let finalX = x;
+      const metrics = ctx.measureText(text);
+      const textW = metrics.width;
+      
+      if (format && format.align === 'center') finalX = x + (w/2) - (textW/2);
+      else if (format && format.align === 'right') finalX = x + w - textW;
+      
+      ctx.fillText(text, finalX, y);
+
+      if (format && (format.underline || format.strike)) {
+        ctx.beginPath();
+        const lineY = format.strike ? y + (format.size * 0.4) : y + (format.size * 1.1);
+        ctx.moveTo(finalX, lineY); ctx.lineTo(finalX + textW, lineY);
+        ctx.lineWidth = Math.max(1, format.size * 0.08);
+        ctx.stroke();
+      }
+    }
+
+    function drawCanvas() {
+      const gFont = document.getElementById('globalFont').value;
+      const showMargins = document.getElementById('showMargins').checked;
+      const showGrid = document.getElementById('snapGrid').checked;
+      const gSize = parseInt(document.getElementById('snapSize').value) || 9;
+      
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const tW = state.paper.widthInches * DPI, tH = state.paper.heightInches * DPI;
+      
+      if (state.isExporting && (tW < canvas.width || tH < canvas.height)) {
+        ctx.strokeStyle = '#1e2a3a'; 
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const tick = 24;
+        if (tW < canvas.width) {
+           ctx.moveTo(tW, 0); ctx.lineTo(tW, tick); 
+           ctx.moveTo(tW, canvas.height); ctx.lineTo(tW, canvas.height - tick);
+        }
+        if (tH < canvas.height) {
+           ctx.moveTo(0, tH); ctx.lineTo(tick, tH); 
+           ctx.moveTo(canvas.width, tH); ctx.lineTo(canvas.width - tick, tH);
+        }
+        ctx.stroke();
+      }
+
+      if (!state.isExporting) {
+        if (showGrid) {
+          ctx.fillStyle = '#cbd5e1'; 
+          for (let x=0; x<tW; x+=gSize) { for (let y=0; y<tH; y+=gSize) { ctx.fillRect(x, y, 2, 2); } }
+        }
+        if (showMargins) {
+          if (tW < canvas.width || tH < canvas.height) {
+            ctx.strokeStyle = '#cbd5e1'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1; ctx.strokeRect(0, 0, tW, tH); ctx.setLineDash([]);
+          }
+          ctx.strokeStyle = 'rgba(213, 94, 0, 0.4)'; ctx.lineWidth = 1; ctx.strokeRect(0.25*DPI, 0.25*DPI, tW - 0.5*DPI, tH - 0.5*DPI);
+        }
+      }
+
+      state.elements.forEach(el => {
+        ctx.textBaseline = 'top';
+        const isBorder = el.showBorder !== false;
+        
+        if (!state.isExporting && !getActiveText(el) && !el.label && !isBorder && el.type !== 'image' && el.type !== 'table') {
+          ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.strokeRect(el.x, el.y, el.w, el.h); ctx.setLineDash([]);
+          ctx.fillStyle = '#94a3b8'; ctx.font = `italic 12px ${gFont}`; ctx.fillText("Empty", el.x + 5, el.y + 5);
+        }
+
+        if (el.type === 'box') {
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(el.x, el.y, el.w, el.h);
+          if (el.bgStyle === 'lines' || el.bgStyle === 'grid') {
+            ctx.strokeStyle = (el.bgStyle === 'grid') ? '#e2e8f0' : '#cbd5e1'; ctx.lineWidth = 1; ctx.beginPath();
+            const step = el.bgStyle === 'grid' ? 20 : 30;
+            for (let ly = el.y + step; ly < el.y + el.h; ly += step) { ctx.moveTo(el.x, ly); ctx.lineTo(el.x + el.w, ly); }
+            if (el.bgStyle === 'grid') { for (let lx = el.x + step; lx < el.x + el.w; lx += step) { ctx.moveTo(lx, el.y); ctx.lineTo(lx, el.y + el.h); } }
+            ctx.stroke();
+          }
+          if (isBorder) { ctx.strokeStyle = '#1e2a3a'; ctx.lineWidth = el.borderWidth || 2; ctx.strokeRect(el.x, el.y, el.w, el.h); }
+
+          if (el.label) {
+            ctx.font = `bold 14px ${gFont}`; const pad = 8; const textW = ctx.measureText(el.label).width;
+            const labelW = textW + (pad * 2), labelH = 22, labelX = el.x + 5, labelY = el.y - (labelH / 2);
+            ctx.fillStyle = '#1e2a3a'; ctx.fillRect(labelX, labelY, labelW, labelH);
+            ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle'; ctx.fillText(el.label, labelX + pad, el.y); ctx.textBaseline = 'top'; 
+          }
+
+          if (el.text) {
+             ctx.fillStyle = '#1e2a3a'; 
+             let textY = el.y + 8; if (el.label) textY += 12;
+             const availH = el.h - (textY - el.y) - 8;
+             drawFormattedText(ctx, el.text, el.x + 10, textY, el.w - 20, availH, el.format, gFont);
+          }
+        } 
+        else if (el.type === 'table') {
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(el.x, el.y, el.w, el.h);
+          ctx.strokeStyle = '#1e2a3a'; ctx.lineWidth = el.borderWidth || 2;
+          ctx.beginPath();
+          const rH = el.h / el.rows, cW = el.w / el.cols;
+          for(let i=1; i<el.rows; i++) { ctx.moveTo(el.x, el.y + i*rH); ctx.lineTo(el.x + el.w, el.y + i*rH); }
+          for(let i=1; i<el.cols; i++) { ctx.moveTo(el.x + i*cW, el.y); ctx.lineTo(el.x + i*cW, el.y + el.h); }
+          ctx.stroke();
+          if (isBorder) ctx.strokeRect(el.x, el.y, el.w, el.h);
+
+          for (let r=0; r<el.rows; r++) {
+             for (let c=0; c<el.cols; c++) {
+                const cell = el.cells[r][c];
+                const cX = el.x + (c * cW);
+                const cY = el.y + (r * rH);
+
+                if (el.id === state.selectedId && state.selectedCell && state.selectedCell.r === r && state.selectedCell.c === c && !state.isExporting) {
+                   ctx.fillStyle = 'rgba(50, 102, 173, 0.15)';
+                   ctx.fillRect(cX, cY, cW, rH);
+                }
+
+                if (cell && cell.text) {
+                   ctx.fillStyle = '#1e2a3a';
+                   const mergedFormat = cell.format ? { ...el.format, ...cell.format } : el.format;
+                   drawFormattedText(ctx, cell.text, cX + 5, cY + 5, cW - 10, rH - 10, mergedFormat, gFont);
+                }
+             }
+          }
+        }
+        else if (el.type === 'text') {
+          if (isBorder) { ctx.strokeStyle = '#1e2a3a'; ctx.lineWidth = el.borderWidth || 2; ctx.strokeRect(el.x, el.y, el.w, el.h); }
+          if (el.text) { 
+            ctx.fillStyle = '#1e2a3a'; 
+            drawFormattedText(ctx, el.text, el.x, el.y, el.w, el.h, el.format, gFont); 
+          }
+        }
+        else if (el.type === 'image') {
+          if (isBorder) { ctx.strokeStyle = '#1e2a3a'; ctx.lineWidth = el.borderWidth || 2; ctx.strokeRect(el.x, el.y, el.w, el.h); }
+          if (el.img) { ctx.drawImage(el.img, el.x, el.y, el.w, el.h); }
+        }
+
+        // Selection
+        if (el.id === state.selectedId && !state.isExporting) {
+          ctx.strokeStyle = 'rgba(50, 102, 173, 0.8)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.strokeRect(el.x, el.y, el.w, el.h); ctx.setLineDash([]);
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(el.x + el.w - HANDLE_SIZE/2, el.y + el.h - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE); ctx.strokeRect(el.x + el.w - HANDLE_SIZE/2, el.y + el.h - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
+        }
+      });
+
+      if (!state.isExporting && state.activeGuides.length > 0) {
+        ctx.strokeStyle = '#d946ef'; 
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        state.activeGuides.forEach(g => {
+          if (g.type === 'v') { ctx.moveTo(g.pos, 0); ctx.lineTo(g.pos, canvas.height); }
+          else { ctx.moveTo(0, g.pos); ctx.lineTo(canvas.width, g.pos); }
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    function getTimestamp() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+    // --- PDF Export Logic ---
+    function downloadPDF() {
+      if (!window.jspdf) { alert("PDF library is loading, please try again in a moment."); return; }
+      const curr = state.selectedId; selectElement(null); 
+      state.isExporting = true; drawCanvas();
+      
+      const { jsPDF } = window.jspdf;
+      const orientation = state.paper.widthInches > state.paper.heightInches ? 'l' : 'p';
+      const doc = new jsPDF({
+          orientation: orientation,
+          unit: 'in',
+          format: [Math.max(8.5, state.paper.widthInches), Math.max(11, state.paper.heightInches)]
+      });
+      
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      doc.addImage(imgData, 'PNG', 0, 0, Math.max(8.5, state.paper.widthInches), Math.max(11, state.paper.heightInches));
+      doc.save(`Notes_${getTimestamp()}.pdf`);
+      
+      state.isExporting = false; 
+      selectElement(curr); drawCanvas();
+    }
+
+    async function copyPNG() {
+      state.isExporting = true; drawCanvas(); const btn = document.getElementById('copyBtn'), fb = document.getElementById('copyFeedback');
+      try {
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        fb.style.display = 'inline-flex'; const obg = btn.style.background; btn.style.background = '#145e2c';
+        setTimeout(() => { fb.style.display = 'none'; btn.style.background = obg || '#1a7a3a'; }, 2500);
+      } catch (err) { alert("Copy failed."); } finally { state.isExporting = false; drawCanvas(); }
+    }
+
+    document.fonts.ready.then(drawCanvas); 
+    loadSettings(); 
+    handlePaperSizeChange(false);
+    
+    // Save initial state to history stack
+    setTimeout(() => { fitToWidth(); pushHistory(); }, 100);
+  </script>
+</body>
+</html>
