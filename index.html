@@ -108,14 +108,24 @@
     .stage-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .export-tray { display: flex; flex-direction: row; align-items: center; gap: 10px; }
 
-    /* Formatting Toolbar */
+    /* Formatting Toolbar & Editor */
     .format-bar { display: flex; flex-direction: column; gap: 6px; padding: 8px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px 6px 0 0; border-bottom: none; }
     .format-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; }
     .fmt-btn:hover { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); }
     .fmt-btn.active { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
-    #propText { border-radius: 0 0 6px 6px; }
     .fmt-divider { width: 1px; height: 24px; background: var(--card-border); margin: 0 2px; }
+
+    /* New Rich Text ContentEditable */
+    #propText { 
+      border: 1.5px solid var(--input-border); border-radius: 0 0 6px 6px; padding: 8px; 
+      font-size: 10pt; font-family: Arial, sans-serif; background: #ffffff; 
+      color: #1e2a3a; outline: none; min-height: 80px; overflow-y: auto; 
+      transition: border-color .15s; 
+    }
+    #propText:focus { border-color: var(--btn-primary-bg); }
+    #propText ul, #propText ol { padding-left: 20px; margin: 4px 0; }
+    #propText sup, #propText sub { font-size: 0.8em; }
 
     /* Custom Dropdown Menus */
     .dropdown-custom { position: relative; display: inline-block; }
@@ -147,7 +157,7 @@
         <button class="btn btn-hdr" id="btnUndo" onclick="undo()" disabled title="Undo"><i class="ti ti-arrow-back-up"></i></button>
         <button class="btn btn-hdr" id="btnRedo" onclick="redo()" disabled title="Redo"><i class="ti ti-arrow-forward-up"></i></button>
         
-        <div class="toolbar-ver">V 1.3.0 &mdash; 2026-09-20</div>
+        <div class="toolbar-ver">V 1.4.0 &mdash; 2026-09-20</div>
       </div>
     </header>
 
@@ -227,14 +237,14 @@
 
                 <!-- 3-Tier Formatting Toolbar -->
                 <div class="format-bar">
-                  <!-- Row 1: Font size, styling -->
+                  <!-- Row 1: Global Font size, Local Styling -->
                   <div class="format-row">
-                    <input type="number" id="fmtSize" value="12" style="width: 48px; height: 34px; padding: 0 4px;" title="Font Size" onchange="updateFormat('size', this.value)">
+                    <input type="number" id="fmtSize" value="12" style="width: 48px; height: 34px; padding: 0 4px;" title="Global Box Font Size" onchange="updateFormat('size', this.value)">
                     <div class="fmt-divider"></div>
-                    <button class="fmt-btn" id="fmtB" onclick="toggleFormat('bold')" title="Bold"><i class="ti ti-bold"></i></button>
-                    <button class="fmt-btn" id="fmtI" onclick="toggleFormat('italic')" title="Italic"><i class="ti ti-italic"></i></button>
-                    <button class="fmt-btn" id="fmtU" onclick="toggleFormat('underline')" title="Underline"><i class="ti ti-underline"></i></button>
-                    <button class="fmt-btn" id="fmtS" onclick="toggleFormat('strike')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
+                    <button class="fmt-btn" onclick="execCmd('bold')" title="Bold"><i class="ti ti-bold"></i></button>
+                    <button class="fmt-btn" onclick="execCmd('italic')" title="Italic"><i class="ti ti-italic"></i></button>
+                    <button class="fmt-btn" onclick="execCmd('underline')" title="Underline"><i class="ti ti-underline"></i></button>
+                    <button class="fmt-btn" onclick="execCmd('strikeThrough')" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
                   </div>
                   
                   <!-- Row 2: Math/Greek, Super/Sub, Lists -->
@@ -284,16 +294,16 @@
                       </div>
                     </div>
 
-                    <button class="fmt-btn" onclick="insertUnicode('sup')" title="Superscript Toggle"><i class="ti ti-superscript"></i></button>
-                    <button class="fmt-btn" onclick="insertUnicode('sub')" title="Subscript Toggle"><i class="ti ti-subscript"></i></button>
+                    <button class="fmt-btn" onclick="execCmd('superscript')" title="Superscript Toggle"><i class="ti ti-superscript"></i></button>
+                    <button class="fmt-btn" onclick="execCmd('subscript')" title="Subscript Toggle"><i class="ti ti-subscript"></i></button>
                     <div class="fmt-divider"></div>
-                    <button class="fmt-btn" onclick="insertList('bullet')" title="Bullet List"><i class="ti ti-list"></i></button>
-                    <button class="fmt-btn" onclick="insertList('number')" title="Numbered List"><i class="ti ti-list-numbers"></i></button>
-                    <button class="fmt-btn" onclick="insertList('outline')" title="Outline List"><i class="ti ti-list-tree"></i></button>
-                    <button class="fmt-btn" onclick="insertList('check')" title="Checklist"><i class="ti ti-list-check"></i></button>
+                    <button class="fmt-btn" onclick="insertList('• ')" title="Bullet List"><i class="ti ti-list"></i></button>
+                    <button class="fmt-btn" onclick="insertList('1. ')" title="Numbered List"><i class="ti ti-list-numbers"></i></button>
+                    <button class="fmt-btn" onclick="insertList('I. ')" title="Outline List"><i class="ti ti-list-tree"></i></button>
+                    <button class="fmt-btn" onclick="insertList('☐ ')" title="Checklist"><i class="ti ti-list-check"></i></button>
                   </div>
 
-                  <!-- Row 3: Horizontal & Vertical Alignments -->
+                  <!-- Row 3: Global Horizontal & Vertical Alignments -->
                   <div class="format-row">
                     <button class="fmt-btn" id="fmtL" onclick="updateFormat('align', 'left')" title="Align Left"><i class="ti ti-align-left"></i></button>
                     <button class="fmt-btn" id="fmtC" onclick="updateFormat('align', 'center')" title="Align Center"><i class="ti ti-align-center"></i></button>
@@ -304,7 +314,8 @@
                     <button class="fmt-btn" id="fmtVB" onclick="updateFormat('valign', 'bottom')" title="Vertical Align Bottom"><i class="ti ti-layout-align-bottom"></i></button>
                   </div>
                 </div>
-                <textarea id="propText" rows="4" oninput="updateSelectedElement()" onchange="pushHistory()"></textarea>
+                <!-- Replaced textarea with contenteditable div for Rich Text -->
+                <div id="propText" contenteditable="true" oninput="updateSelectedElement()" onblur="pushHistory()"></div>
               </div>
               
               <div class="toggle-row" style="margin-top: 12px;">
@@ -467,7 +478,7 @@
     
     // Unicode Maps for Sub/Superscript
     const SUPER_MAP = { '0':'⁰', '1':'¹', '2':'²', '3':'³', '4':'⁴', '5':'⁵', '6':'⁶', '7':'⁷', '8':'⁸', '9':'⁹', '+':'⁺', '-':'⁻', '=':'⁼', '(':'⁽', ')':'⁾', 'a':'ᵃ', 'b':'ᵇ', 'c':'ᶜ', 'd':'ᵈ', 'e':'ᵉ', 'm':'ᵐ', 'n':'ⁿ', 'p':'ᵖ', 'r':'ʳ', 's':'ˢ', 't':'ᵗ', 'x':'ˣ', 'y':'ʸ', 'z':'ᶻ' };
-    const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ₙ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
+    const SUB_MAP = { '0':'₀', '1':'₁', '2':'₂', '3':'₃', '4':'₄', '5':'₅', '6':'₆', '7':'₇', '8':'₈', '9':'₉', '+':'₊', '-':'₋', '=':'₌', '(':'₍', ')':'₎', 'a':'ₐ', 'e':'ₑ', 'h':'ₕ', 'i':'ᵢ', 'j':'ⱼ', 'k':'ₖ', 'l':'ₗ', 'm':'ₘ', 'n':'ⁿ', 'o':'ₒ', 'p':'ₚ', 'r':'ᵣ', 's':'ₛ', 't':'ₜ', 'u':'ᵤ', 'v':'ᵥ', 'x':'ₓ' };
 
     const REVERSE_SUPER_MAP = {}; for(let k in SUPER_MAP) REVERSE_SUPER_MAP[SUPER_MAP[k]] = k;
     const REVERSE_SUB_MAP = {}; for(let k in SUB_MAP) REVERSE_SUB_MAP[SUB_MAP[k]] = k;
@@ -519,6 +530,18 @@
       }
     }
 
+    // --- Core Scale Fix for Retina/High-DPI Displays ---
+    function resizeCanvas() {
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      const logicalH = Math.max(11, state.paper.heightInches) * DPI;
+      const dpr = window.devicePixelRatio || 1;
+      
+      canvas.width = logicalW * dpr;
+      canvas.height = logicalH * dpr;
+      
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
     function restoreState(snapStr) {
       const snap = JSON.parse(snapStr);
       state.elements = snap.elements;
@@ -561,8 +584,7 @@
         }
       });
 
-      canvas.width = Math.max(8.5, state.paper.widthInches) * DPI;
-      canvas.height = Math.max(11, state.paper.heightInches) * DPI;
+      resizeCanvas();
       
       if (!state.elements.find(e => e.id === state.selectedId)) selectElement(null);
       else selectElement(state.selectedId);
@@ -630,7 +652,7 @@
     let dragOffsetX = 0; let dragOffsetY = 0;
     const HANDLE_SIZE = 12;
 
-    function defaultFormat() { return { bold: false, italic: false, underline: false, strike: false, size: 12, align: 'left', valign: 'top' }; }
+    function defaultFormat() { return { size: 12, align: 'left', valign: 'top' }; }
 
     let scaleModalPromiseResolve = null;
     let lastPaperSettings = { size: 'notebook', orient: 'portrait', customW: 5.5, customH: 8.5 };
@@ -716,8 +738,7 @@
       state.paper.widthInches = newW;
       state.paper.heightInches = newH;
       
-      canvas.width = Math.max(8.5, state.paper.widthInches) * DPI;
-      canvas.height = Math.max(11, state.paper.heightInches) * DPI;
+      resizeCanvas();
       
       applyZoom(); drawCanvas();
       if (isUserAction) pushHistory();
@@ -730,12 +751,21 @@
     }
 
     function setZoom(level) { state.zoom = Math.max(0.25, Math.min(3.0, level)); applyZoom(); }
-    function fitToPage() { setZoom(Math.min((viewport.clientWidth - 80) / canvas.width, (viewport.clientHeight - 80) / canvas.height)); }
-    function fitToWidth() { setZoom((viewport.clientWidth - 80) / canvas.width); }
+    function fitToPage() { 
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      const logicalH = Math.max(11, state.paper.heightInches) * DPI;
+      setZoom(Math.min((viewport.clientWidth - 80) / logicalW, (viewport.clientHeight - 80) / logicalH)); 
+    }
+    function fitToWidth() { 
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      setZoom((viewport.clientWidth - 80) / logicalW); 
+    }
     function applyZoom() {
       document.getElementById('zoomLabel').innerText = Math.round(state.zoom * 100) + '%';
-      canvas.style.width = (canvas.width * state.zoom) + "px";
-      canvas.style.height = (canvas.height * state.zoom) + "px";
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      const logicalH = Math.max(11, state.paper.heightInches) * DPI;
+      canvas.style.width = (logicalW * state.zoom) + "px";
+      canvas.style.height = (logicalH * state.zoom) + "px";
     }
 
     viewport.addEventListener('wheel', e => {
@@ -787,72 +817,70 @@
         state.elements.push({ id: generateId(), type: 'box', x: m, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Examples', labelAlign: 'left', text: '', bgStyle: 'none', lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, format: defaultFormat() });
         state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2, y: m + safeH/2, w: safeW/2, h: safeH/2, label: 'Non-Examples', labelAlign: 'right', text: '', bgStyle: 'none', lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, format: defaultFormat() });
         const cw = 220, ch = 80;
-        let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.bold = true; cFormat.valign = 'middle';
+        let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.valign = 'middle';
         state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', labelAlign: 'left', text: '', bgStyle: 'none', lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, format: cFormat });
       } else if (type === 'lab') {
         
-        // Dynamically scaled Lab Protocol layout based on 6.25" x 8.5" proportion (safe canvas: 552 x 768)
-        const col1W = safeW * (396/552); 
-        const col2W = safeW * (135/552); 
-        const leftX = m + (safeW * (3/552));
+        // Dynamically scaled Lab Protocol layout based on 6.25" x 8.5" proportion (safe canvas: 552 x 768) mapped directly to user layout
+        const col1W = safeW * (392/552); 
+        const col2W = safeW * (136/552); 
+        const leftX = m + (safeW * (8/552));
         const rightX = m + (safeW * (408/552));
 
         let titleFormat = defaultFormat();
-        titleFormat.bold = true;
-        titleFormat.italic = true;
         titleFormat.size = 16;
 
         state.elements.push({
-          id: generateId(), type: 'box', x: leftX, y: m, w: col1W, h: safeH * (21/768), 
-          label: '', labelAlign: 'left', text: 'Lab Protocol Title', bgStyle: 'none', 
+          id: generateId(), type: 'box', x: leftX, y: m + safeH * (8/768), w: safeW * (400/552), h: safeH * (32/768), 
+          label: '', labelAlign: 'left', text: '<b><i>Lab Protocol Title</i></b>', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: false, borderWidth: 2, 
           format: titleFormat
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: leftX, y: m + safeH * (39/768), w: col1W, h: safeH * (72/768), 
+          id: generateId(), type: 'box', x: leftX, y: m + safeH * (56/768), w: col1W, h: safeH * (72/768), 
           label: 'Background', labelAlign: 'left', text: '', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: rightX, y: m + safeH * (39/768), w: col2W, h: safeH * (72/768), 
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (56/768), w: col2W, h: safeH * (72/768), 
           label: 'Safety', labelAlign: 'left', text: '', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: rightX, y: m + safeH * (129/768), w: col2W, h: safeH * (99/768), 
-          label: 'Materials', labelAlign: 'left', text: '☐ One\n☐ Two\n☐ Three', bgStyle: 'none', 
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (144/768), w: safeW * (135/552), h: safeH * (99/768), 
+          label: 'Materials', labelAlign: 'left', text: '☐ One<br>☐ Two<br>☐ Three', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: leftX, y: m + safeH * (129/768), w: col1W, h: safeH * (630/768), 
+          id: generateId(), type: 'box', x: leftX, y: m + safeH * (144/768), w: col1W, h: safeH * (616/768), 
           label: 'Procedure', labelAlign: 'left', text: '', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: rightX, y: m + safeH * (246/768), w: col2W, h: safeH * (243/768), 
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (264/768), w: col2W, h: safeH * (224/768), 
           label: 'Information', labelAlign: 'left', text: '', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: rightX, y: m + safeH * (507/768), w: col2W, h: safeH * (153/768), 
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (507/768), w: safeW * (135/552), h: safeH * (153/768), 
           label: 'Clean Up', labelAlign: 'left', text: '', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
         });
 
         state.elements.push({
-          id: generateId(), type: 'box', x: rightX, y: m + safeH * (678/768), w: col2W, h: safeH * (81/768), 
+          id: generateId(), type: 'box', x: rightX, y: m + safeH * (678/768), w: safeW * (135/552), h: safeH * (81/768), 
           label: 'Stamp', labelAlign: 'left', text: '', bgStyle: 'none', 
           lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, 
           format: defaultFormat()
@@ -870,7 +898,7 @@
         el.w = 300; el.h = 150; el.rows = 3; el.cols = 3; 
         el.format.align = 'center'; el.format.valign = 'middle';
         el.cells = buildCells(null, 3, 3); 
-        for(let c=0; c<3; c++) { el.cells[0][c].format = { bold: true }; }
+        for(let c=0; c<3; c++) { el.cells[0][c].text = "<b>Header</b>"; }
       }
       state.elements.push(el); state.selectedCell = {r:0, c:0}; selectElement(el.id); drawCanvas(); pushHistory();
     }
@@ -907,18 +935,55 @@
 
     function clearCanvas() { state.elements = []; selectElement(null); drawCanvas(); pushHistory(); }
 
-    // --- Keyboard Shortcuts & Auto-List Engine ---
+    // --- Rich Text Editing Engine ---
+    function execCmd(command, value=null) {
+        document.getElementById('propText').focus();
+        document.execCommand(command, false, value);
+        updateSelectedElement();
+    }
+
+    function insertList(marker) {
+        document.getElementById('propText').focus();
+        document.execCommand('insertText', false, marker);
+        updateSelectedElement();
+        pushHistory();
+    }
+
+    function insertChar(char) {
+        document.getElementById('propText').focus();
+        document.execCommand('insertText', false, char);
+        updateSelectedElement(); 
+        pushHistory(); 
+        closeAllDropdowns();
+    }
+
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      const isOpen = menu.classList.contains('open');
+      closeAllDropdowns();
+      if (!isOpen) menu.classList.add('open');
+    }
+
+    function closeAllDropdowns() { document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open')); }
+
+    document.addEventListener('click', function(e) { if (!e.target.closest('.dropdown-custom')) closeAllDropdowns(); });
+
     document.getElementById('propText').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
-        const ta = this;
-        const start = ta.selectionStart;
-        const textBefore = ta.value.substring(0, start);
-        const textAfter = ta.value.substring(ta.selectionEnd);
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
         
-        const lastNewline = textBefore.lastIndexOf('\n');
-        const currentLine = textBefore.substring(lastNewline + 1);
+        const node = sel.focusNode;
+        if (!node) return;
         
-        const match = currentLine.match(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)(.*)$/);
+        let textBeforeCaret = "";
+        if (node.nodeType === 3) {
+          textBeforeCaret = node.nodeValue.substring(0, sel.focusOffset);
+        } else {
+          textBeforeCaret = node.textContent.substring(0, sel.focusOffset);
+        }
+        
+        const match = textBeforeCaret.match(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)(.*)$/);
         
         if (match) {
           e.preventDefault();
@@ -927,8 +992,12 @@
           const content = match[3];
 
           if (content.trim() === '') {
-            ta.value = textBefore.substring(0, lastNewline === -1 ? 0 : lastNewline + 1) + textAfter;
-            ta.selectionStart = ta.selectionEnd = lastNewline === -1 ? 0 : lastNewline + 1;
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand('delete', false);
+            document.execCommand('insertHTML', false, '<br>');
           } else {
             let nextMarker = m;
             if (m === '•' || m === '☐') nextMarker = m;
@@ -941,9 +1010,9 @@
               else if (/^[A-Z]$/.test(m)) nextMarker = String.fromCharCode(m.charCodeAt(0) + 1);
               else if (/^[a-z]$/.test(m)) nextMarker = String.fromCharCode(m.charCodeAt(0) + 1);
             }
-            const insertStr = '\n' + nextMarker + sep;
-            ta.value = textBefore + insertStr + textAfter;
-            ta.selectionStart = ta.selectionEnd = start + insertStr.length;
+            
+            // FIX: Use insertHTML with &nbsp; to preserve trailing space and ensure proper caret placement after <br>
+            document.execCommand('insertHTML', false, '<br>' + nextMarker + sep.replace(/ /g, '&nbsp;'));
           }
           updateSelectedElement();
           pushHistory();
@@ -953,7 +1022,8 @@
 
     document.addEventListener('keydown', function(e) {
       const tag = document.activeElement.tagName.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      // Ignore keydown delete on contenteditable so it deletes text, not the canvas element
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || document.activeElement.isContentEditable) return;
 
       const isMac = navigator.userAgent.indexOf('Mac OS X') != -1;
       const cmdCtrl = isMac ? e.metaKey : e.ctrlKey;
@@ -992,7 +1062,7 @@
       }
     });
 
-    // --- Properties & Text Formatting ---
+    // --- Properties Control ---
     function getActiveText(el) {
       if (el.type === 'table') {
          if (state.selectedCell.r < el.rows && state.selectedCell.c < el.cols) {
@@ -1022,7 +1092,7 @@
       if (el.format && !el.format.valign) el.format.valign = 'top';
 
       panel.classList.remove('hidden');
-      document.getElementById('propText').value = getActiveText(el);
+      document.getElementById('propText').innerHTML = getActiveText(el);
       document.getElementById('propShowBorder').checked = el.showBorder !== false;
       document.getElementById('textPropRow').style.display = el.type === 'image' ? 'none' : 'flex';
       
@@ -1067,10 +1137,6 @@
 
       if (fmt) {
         document.getElementById('fmtSize').value = fmt.size;
-        document.getElementById('fmtB').classList.toggle('active', fmt.bold);
-        document.getElementById('fmtI').classList.toggle('active', fmt.italic);
-        document.getElementById('fmtU').classList.toggle('active', fmt.underline);
-        document.getElementById('fmtS').classList.toggle('active', fmt.strike);
         document.getElementById('fmtL').classList.toggle('active', fmt.align === 'left');
         document.getElementById('fmtC').classList.toggle('active', fmt.align === 'center');
         document.getElementById('fmtR').classList.toggle('active', fmt.align === 'right');
@@ -1085,7 +1151,7 @@
       const el = state.elements.find(e => e.id === state.selectedId);
       if (!el) return;
       
-      setActiveText(el, document.getElementById('propText').value);
+      setActiveText(el, document.getElementById('propText').innerHTML);
       el.showBorder = document.getElementById('propShowBorder').checked;
       
       if (el.type === 'box') {
@@ -1120,26 +1186,6 @@
       drawCanvas();
     }
 
-    function toggleFormat(type) {
-      if (!state.selectedId) return;
-      const el = state.elements.find(e => e.id === state.selectedId);
-      if (!el) return;
-
-      if (el.type === 'table') {
-        const target = document.getElementById('fmtTarget').value;
-        if (target === 'table') {
-           el.format[type] = !el.format[type];
-        } else {
-           const cell = el.cells[state.selectedCell.r][state.selectedCell.c];
-           if (!cell.format) cell.format = { ...el.format };
-           cell.format[type] = !cell.format[type];
-        }
-      } else {
-        if (el.format) el.format[type] = !el.format[type];
-      }
-      selectElement(state.selectedId); drawCanvas(); pushHistory();
-    }
-
     function updateFormat(type, val) {
       if (!state.selectedId) return;
       const el = state.elements.find(e => e.id === state.selectedId);
@@ -1162,87 +1208,6 @@
       selectElement(state.selectedId); drawCanvas(); pushHistory();
     }
 
-    function insertUnicode(type) {
-      const ta = document.getElementById('propText');
-      const start = ta.selectionStart; const end = ta.selectionEnd;
-      if (start === end) return;
-      const selected = ta.value.substring(start, end);
-      const map = type === 'sub' ? SUB_MAP : SUPER_MAP;
-      const revMap = type === 'sub' ? REVERSE_SUB_MAP : REVERSE_SUPER_MAP;
-      
-      const converted = selected.split('').map(c => {
-         if (revMap[c]) return revMap[c]; // Revert it if it's already sub/super
-         return map[c.toLowerCase()] || map[c] || c; // Convert it if possible
-      }).join('');
-      
-      ta.value = ta.value.substring(0, start) + converted + ta.value.substring(end);
-      updateSelectedElement(); pushHistory();
-      
-      // Reselect the text to allow for immediate multi-toggling
-      setTimeout(() => {
-        ta.focus();
-        ta.setSelectionRange(start, start + converted.length);
-      }, 0);
-    }
-
-    function insertList(type) {
-      const ta = document.getElementById('propText');
-      const start = ta.selectionStart; const end = ta.selectionEnd;
-      const pre = ta.value.substring(0, start); const post = ta.value.substring(end);
-      const selected = ta.value.substring(start, end);
-      
-      if (start === end) {
-         const lastNewline = pre.lastIndexOf('\n');
-         const lineStart = lastNewline === -1 ? 0 : lastNewline + 1;
-         const nextNewline = post.indexOf('\n');
-         const lineEnd = nextNewline === -1 ? ta.value.length : end + nextNewline;
-         const line = ta.value.substring(lineStart, lineEnd);
-         
-         const stripped = line.replace(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)/, '');
-         let marker = '• ';
-         if (type === 'check') marker = '☐ ';
-         if (type === 'number') marker = '1. ';
-         if (type === 'outline') marker = 'I. ';
-         
-         const newLine = marker + stripped;
-         ta.value = ta.value.substring(0, lineStart) + newLine + ta.value.substring(lineEnd);
-         ta.selectionStart = ta.selectionEnd = lineStart + marker.length;
-      } else {
-         let lines = selected.split('\n');
-         lines = lines.map(l => l.replace(/^([•☐]|\d+|[A-Za-z]+)(\.\s+|\s+)/, ''));
-         if (type === 'bullet') lines = lines.map(l => '• ' + l);
-         else if (type === 'check') lines = lines.map(l => '☐ ' + l);
-         else if (type === 'number') lines = lines.map((l, i) => (i+1) + '. ' + l);
-         else if (type === 'outline') {
-           const prefixes = ['I. ', 'A. ', '1. ', 'a. ', 'i. '];
-           lines = lines.map((l, i) => (prefixes[i % prefixes.length]) + l);
-         }
-         let insertText = lines.join('\n');
-         ta.value = pre + insertText + post;
-         ta.selectionStart = start; ta.selectionEnd = start + insertText.length;
-      }
-      updateSelectedElement(); pushHistory(); ta.focus();
-    }
-
-    function toggleDropdown(id) {
-      const menu = document.getElementById(id);
-      const isOpen = menu.classList.contains('open');
-      closeAllDropdowns();
-      if (!isOpen) menu.classList.add('open');
-    }
-
-    function closeAllDropdowns() { document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open')); }
-
-    function insertChar(char) {
-      const ta = document.getElementById('propText');
-      const start = ta.selectionStart; const end = ta.selectionEnd;
-      ta.value = ta.value.substring(0, start) + char + ta.value.substring(end);
-      ta.selectionStart = ta.selectionEnd = start + char.length;
-      updateSelectedElement(); pushHistory(); ta.focus(); closeAllDropdowns();
-    }
-
-    document.addEventListener('click', function(e) { if (!e.target.closest('.dropdown-custom')) closeAllDropdowns(); });
-
     function deleteSelected() {
       if (!state.selectedId) return;
       state.elements = state.elements.filter(e => e.id !== state.selectedId);
@@ -1252,7 +1217,12 @@
     // --- Interactive Engine & Smart Snapping ---
     function getMousePos(evt) {
       const r = canvas.getBoundingClientRect();
-      return { x: (evt.clientX - r.left) * (canvas.width / r.width), y: (evt.clientY - r.top) * (canvas.height / r.height) };
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      const logicalH = Math.max(11, state.paper.heightInches) * DPI;
+      return { 
+        x: (evt.clientX - r.left) * (logicalW / r.width), 
+        y: (evt.clientY - r.top) * (logicalH / r.height) 
+      };
     }
 
     function calculateSnaps(el) {
@@ -1375,7 +1345,7 @@
       if (!el) return;
 
       const useGrid = document.getElementById('snapGrid').checked;
-      const gSize = parseInt(document.getElementById('snapSize').value) || 9;
+      const gSize = parseInt(document.getElementById('snapSize').value) || 8;
 
       if (isResizing) {
         let propW = Math.max(20, pos.x - el.x); 
@@ -1419,110 +1389,206 @@
       isDragging = false; isResizing = false; state.activeGuides = []; canvas.style.cursor = 'crosshair'; drawCanvas(); 
     });
 
-    // --- Renderer ---
-    function applyFormatToContext(ctx, format, gFont) {
-      if (!format) { ctx.font = `12px ${gFont}`; return; }
-      let fStr = "";
-      if (format.italic) fStr += "italic ";
-      if (format.bold) fStr += "bold ";
-      fStr += `${format.size || 12}px ${gFont}`;
-      ctx.font = fStr;
+    // --- AST Rich Text Engine ---
+    function parseHTMLToSegments(html) {
+      if (!html) return [];
+      const div = document.createElement('div');
+      
+      // Clean block elements to preserve line breaks
+      let cleanHtml = html.replace(/<div[^>]*><br><\/div>/gi, '\n');
+      cleanHtml = cleanHtml.replace(/<div[^>]*>/gi, '\n');
+      cleanHtml = cleanHtml.replace(/<\/div>/gi, '');
+      cleanHtml = cleanHtml.replace(/<p[^>]*>/gi, '\n');
+      cleanHtml = cleanHtml.replace(/<\/p>/gi, '');
+      cleanHtml = cleanHtml.replace(/<br[^>]*>/gi, '\n');
+      cleanHtml = cleanHtml.replace(/&nbsp;/gi, ' ');
+      
+      // Strip leading and trailing newlines from contenteditable wrapping
+      cleanHtml = cleanHtml.replace(/^\n+/, '').replace(/\n+$/, '');
+
+      div.innerHTML = cleanHtml;
+
+      const segments = [];
+      function traverse(node, currentFormat) {
+          if (node.nodeType === 3) { 
+              if (node.nodeValue) {
+                  segments.push({ text: node.nodeValue, format: {...currentFormat} });
+              }
+          } else if (node.nodeType === 1) { 
+              const fmt = {...currentFormat};
+              const tag = node.tagName.toLowerCase();
+              if (tag === 'b' || tag === 'strong') fmt.bold = true;
+              if (tag === 'i' || tag === 'em') fmt.italic = true;
+              if (tag === 'u') fmt.underline = true;
+              if (tag === 's' || tag === 'strike') fmt.strike = true;
+              if (tag === 'sup') fmt.sup = true;
+              if (tag === 'sub') fmt.sub = true;
+              
+              for (let child of node.childNodes) {
+                  traverse(child, fmt);
+              }
+          }
+      }
+      traverse(div, { bold: false, italic: false, underline: false, strike: false, sup: false, sub: false });
+      return segments;
     }
 
-    function calculateTextLines(ctx, text, w, format, gFont) {
-      if (!text) return [];
-      applyFormatToContext(ctx, format, gFont);
-      const paragraphs = text.split('\n');
+    function buildRichLines(ctx, segments, maxWidth, baseSize, gFont) {
       const lines = [];
+      let currentLine = { width: 0, segments: [], indent: 0 };
+      let isFirstLineOfBlock = true;
 
-      paragraphs.forEach(p => {
-        let indent = 0;
-        const match = p.match(/^([•☐]\s+|[IVXLCDMivxlcdm]+\.\s+|[A-Za-z]\.\s+|[0-9]+\.\s+)/);
-        if (match) { indent = ctx.measureText(match[1]).width; }
+      const applyFont = (fmt) => {
+          let fs = "";
+          if (fmt.italic) fs += "italic ";
+          if (fmt.bold) fs += "bold ";
+          let size = baseSize;
+          if (fmt.sup || fmt.sub) size = Math.round(size * 0.75);
+          fs += `${size}px ${gFont}`;
+          ctx.font = fs;
+      };
 
-        const words = p.split(' ');
-        let line = '';
-        let isFirstLine = true;
-        
-        for(let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          const currentIndent = isFirstLine ? 0 : indent;
-          const maxW = w - currentIndent;
-          
-          if (ctx.measureText(testLine).width > maxW && n > 0) {
-            lines.push({ text: line, indent: currentIndent });
-            line = words[n] + ' '; 
-            isFirstLine = false;
-          } else { line = testLine; }
-        }
-        const finalIndent = isFirstLine ? 0 : indent;
-        lines.push({ text: line, indent: finalIndent });
-      });
+      for (let i = 0; i < segments.length; i++) {
+          const seg = segments[i];
+          const parts = seg.text.split('\n');
+
+          for(let p = 0; p < parts.length; p++) {
+              if (p > 0) {
+                  lines.push(currentLine);
+                  currentLine = { width: 0, segments: [], indent: 0 };
+                  isFirstLineOfBlock = true;
+              }
+
+              const textPart = parts[p];
+              if (!textPart) continue;
+
+              // Handle automatic indenting for standard list markers
+              if (isFirstLineOfBlock && currentLine.segments.length === 0) {
+                  const match = textPart.match(/^([•☐]\s+|[IVXLCDMivxlcdm]+\.\s+|[A-Za-z]\.\s+|[0-9]+\.\s+)/);
+                  if (match) {
+                      applyFont(seg.format);
+                      currentLine.indent = ctx.measureText(match[1]).width;
+                  }
+                  isFirstLineOfBlock = false;
+              }
+
+              const words = textPart.split(/( )/);
+
+              for (let w = 0; w < words.length; w++) {
+                  const word = words[w];
+                  if (!word) continue;
+
+                  applyFont(seg.format);
+                  const wWidth = ctx.measureText(word).width;
+                  const maxW = maxWidth - currentLine.indent;
+
+                  if (currentLine.width + wWidth > maxW && currentLine.width > 0 && word !== ' ') {
+                      lines.push(currentLine);
+                      currentLine = { width: 0, segments: [], indent: currentLine.indent };
+                  }
+
+                  const lastSeg = currentLine.segments[currentLine.segments.length - 1];
+                  if (lastSeg && JSON.stringify(lastSeg.format) === JSON.stringify(seg.format)) {
+                      lastSeg.text += word;
+                      currentLine.width += wWidth;
+                  } else {
+                      currentLine.segments.push({ text: word, format: seg.format });
+                      currentLine.width += wWidth;
+                  }
+              }
+          }
+      }
+      if (currentLine.segments.length > 0 || currentLine.width === 0) {
+          lines.push(currentLine);
+      }
       return lines;
     }
 
-    function drawFormattedText(ctx, text, startX, startY, w, availH, format, gFont) {
-      if (!text) return;
-      applyFormatToContext(ctx, format, gFont);
-      const lineHeight = (format.size || 12) * 1.3;
-      const lines = calculateTextLines(ctx, text, w, format, gFont);
-      const totalTextHeight = lines.length * lineHeight;
+    function drawRichTextEngine(ctx, html, startX, startY, w, availH, elFormat, gFont) {
+        if (!html) return;
+        const segments = parseHTMLToSegments(html);
+        const baseSize = elFormat.size || 12;
+        const lineHeight = baseSize * 1.3;
 
-      let yOffset = 0;
-      if (format && format.valign === 'middle') {
-        yOffset = Math.max(0, (availH - totalTextHeight) / 2);
-      } else if (format && format.valign === 'bottom') {
-        yOffset = Math.max(0, availH - totalTextHeight);
-      }
+        const lines = buildRichLines(ctx, segments, w, baseSize, gFont);
+        const totalH = lines.length * lineHeight;
 
-      let currentY = startY + yOffset;
+        let yOffset = 0;
+        if (elFormat.valign === 'middle') yOffset = Math.max(0, (availH - totalH) / 2);
+        else if (elFormat.valign === 'bottom') yOffset = Math.max(0, availH - totalH);
 
-      lines.forEach(l => {
-        drawLineAligned(ctx, l.text, startX + l.indent, currentY, w - l.indent, format);
-        currentY += lineHeight;
-      });
-    }
+        ctx.textBaseline = 'alphabetic';
+        let curY = startY + yOffset + baseSize; // Top coordinate to alphabetic baseline
 
-    function drawLineAligned(ctx, text, x, y, w, format) {
-      let finalX = x;
-      const metrics = ctx.measureText(text);
-      const textW = metrics.width;
-      
-      if (format && format.align === 'center') finalX = x + (w/2) - (textW/2);
-      else if (format && format.align === 'right') finalX = x + w - textW;
-      
-      ctx.fillText(text, finalX, y);
+        lines.forEach(line => {
+            let curX = startX + line.indent;
 
-      if (format && (format.underline || format.strike)) {
-        ctx.beginPath();
-        const lineY = format.strike ? y + (format.size * 0.4) : y + (format.size * 1.1);
-        ctx.moveTo(finalX, lineY); ctx.lineTo(finalX + textW, lineY);
-        ctx.lineWidth = Math.max(1, format.size * 0.08);
-        ctx.stroke();
-      }
+            if (elFormat.align === 'center') {
+                curX = startX + (w / 2) - (line.width / 2);
+            } else if (elFormat.align === 'right') {
+                curX = startX + w - line.width;
+            }
+
+            line.segments.forEach(seg => {
+                let fs = "";
+                if (seg.format.italic || elFormat.italic) fs += "italic ";
+                if (seg.format.bold || elFormat.bold) fs += "bold ";
+                
+                let size = baseSize;
+                let yShift = 0;
+                
+                // Scale subscript and superscript mathematically 
+                if (seg.format.sup) { size = Math.round(baseSize * 0.75); yShift = -baseSize * 0.35; }
+                if (seg.format.sub) { size = Math.round(baseSize * 0.75); yShift = baseSize * 0.25; }
+                
+                fs += `${size}px ${gFont}`;
+                ctx.font = fs;
+
+                ctx.fillText(seg.text, curX, curY + yShift);
+                const tw = ctx.measureText(seg.text).width;
+
+                // Rich Text lines rendering (underlines / strikethroughs)
+                if (seg.format.underline || elFormat.underline || seg.format.strike || elFormat.strike) {
+                    ctx.beginPath();
+                    const ly = (seg.format.strike || elFormat.strike) ? (curY + yShift - size*0.25) : (curY + yShift + size*0.15);
+                    ctx.moveTo(curX, ly);
+                    ctx.lineTo(curX + tw, ly);
+                    ctx.lineWidth = Math.max(1, size * 0.08);
+                    ctx.stroke();
+                }
+
+                curX += tw;
+            });
+            curY += lineHeight;
+        });
+        
+        ctx.textBaseline = 'top'; // Reset for rest of app
     }
 
     function drawCanvas() {
       const gFont = document.getElementById('globalFont').value;
       const showMargins = document.getElementById('showMargins').checked;
       const showGrid = document.getElementById('snapGrid').checked;
-      const gSize = parseInt(document.getElementById('snapSize').value) || 9;
+      const gSize = parseInt(document.getElementById('snapSize').value) || 8;
       
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      const logicalH = Math.max(11, state.paper.heightInches) * DPI;
+
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, logicalW, logicalH);
       const tW = state.paper.widthInches * DPI, tH = state.paper.heightInches * DPI;
       
-      if (state.isExporting && (tW < canvas.width || tH < canvas.height)) {
+      if (state.isExporting && (tW < logicalW || tH < logicalH)) {
         ctx.strokeStyle = '#1e2a3a'; 
         ctx.lineWidth = 1;
         ctx.beginPath();
         const tick = 24;
-        if (tW < canvas.width) {
+        if (tW < logicalW) {
            ctx.moveTo(tW, 0); ctx.lineTo(tW, tick); 
-           ctx.moveTo(tW, canvas.height); ctx.lineTo(tW, canvas.height - tick);
+           ctx.moveTo(tW, logicalH); ctx.lineTo(tW, logicalH - tick);
         }
-        if (tH < canvas.height) {
+        if (tH < logicalH) {
            ctx.moveTo(0, tH); ctx.lineTo(tick, tH); 
-           ctx.moveTo(canvas.width, tH); ctx.lineTo(canvas.width - tick, tH);
+           ctx.moveTo(logicalW, tH); ctx.lineTo(logicalW - tick, tH);
         }
         ctx.stroke();
       }
@@ -1533,7 +1599,7 @@
           for (let x=0; x<tW; x+=gSize) { for (let y=0; y<tH; y+=gSize) { ctx.fillRect(x, y, 2, 2); } }
         }
         if (showMargins) {
-          if (tW < canvas.width || tH < canvas.height) {
+          if (tW < logicalW || tH < logicalH) {
             ctx.strokeStyle = '#cbd5e1'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1; ctx.strokeRect(0, 0, tW, tH); ctx.setLineDash([]);
           }
           ctx.strokeStyle = 'rgba(213, 94, 0, 0.4)'; ctx.lineWidth = 1; ctx.strokeRect(0.25*DPI, 0.25*DPI, tW - 0.5*DPI, tH - 0.5*DPI);
@@ -1582,7 +1648,7 @@
              ctx.fillStyle = '#1e2a3a'; 
              let textY = el.y + 8; if (el.label) textY += 12;
              const availH = el.h - (textY - el.y) - 8;
-             drawFormattedText(ctx, el.text, el.x + 10, textY, el.w - 20, availH, el.format, gFont);
+             drawRichTextEngine(ctx, el.text, el.x + 10, textY, el.w - 20, availH, el.format, gFont);
           }
         } 
         else if (el.type === 'table') {
@@ -1609,7 +1675,7 @@
                 if (cell && cell.text) {
                    ctx.fillStyle = '#1e2a3a';
                    const mergedFormat = cell.format ? { ...el.format, ...cell.format } : el.format;
-                   drawFormattedText(ctx, cell.text, cX + 5, cY + 5, cW - 10, rH - 10, mergedFormat, gFont);
+                   drawRichTextEngine(ctx, cell.text, cX + 5, cY + 5, cW - 10, rH - 10, mergedFormat, gFont);
                 }
              }
           }
@@ -1618,7 +1684,7 @@
           if (isBorder) { ctx.strokeStyle = '#1e2a3a'; ctx.lineWidth = el.borderWidth || 2; ctx.strokeRect(el.x, el.y, el.w, el.h); }
           if (el.text) { 
             ctx.fillStyle = '#1e2a3a'; 
-            drawFormattedText(ctx, el.text, el.x, el.y, el.w, el.h, el.format, gFont); 
+            drawRichTextEngine(ctx, el.text, el.x, el.y, el.w, el.h, el.format, gFont); 
           }
         }
         else if (el.type === 'image') {
@@ -1639,8 +1705,8 @@
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         state.activeGuides.forEach(g => {
-          if (g.type === 'v') { ctx.moveTo(g.pos, 0); ctx.lineTo(g.pos, canvas.height); }
-          else { ctx.moveTo(0, g.pos); ctx.lineTo(canvas.width, g.pos); }
+          if (g.type === 'v') { ctx.moveTo(g.pos, 0); ctx.lineTo(g.pos, logicalH); }
+          else { ctx.moveTo(0, g.pos); ctx.lineTo(logicalW, g.pos); }
         });
         ctx.stroke();
         ctx.setLineDash([]);
@@ -1677,7 +1743,8 @@
     
     // Save initial state to history stack
     setTimeout(() => {
-      const wZoom = (viewport.clientWidth - 80) / canvas.width;
+      const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
+      const wZoom = (viewport.clientWidth - 80) / logicalW;
       setZoom(Math.min(1.0, wZoom));
       pushHistory();
     }, 100);
