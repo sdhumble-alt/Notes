@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>A Humble Note Builder</title>
+  <!-- Sectional Canvas Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231e2a3a'/%3E%3Crect x='6' y='6' width='20' height='5' rx='1.5' fill='%233266ad'/%3E%3Crect x='6' y='14' width='7' height='12' rx='1.5' fill='%23cbd5e1'/%3E%3Crect x='15' y='14' width='11' height='12' rx='1.5' fill='%23ffffff'/%3E%3C/svg%3E">
   <!-- Stable Tabler Icons CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <!-- jsPDF Library for exact dimension PDF exports -->
@@ -113,10 +115,10 @@
     .format-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .fmt-btn { background: #fff; border: 1px solid var(--card-border); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-weight: bold; color: #334155; font-size: 10pt; transition: 0.1s; display: flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; }
     .fmt-btn:hover { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); }
-    .fmt-btn.active { background: #eef3fb; border-color: var(--btn-primary-bg); color: var(--btn-primary-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+    .fmt-btn.active { background: #eef3fb; border-color: var(--btn-primary-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
     .fmt-divider { width: 1px; height: 24px; background: var(--card-border); margin: 0 2px; }
 
-    /* New Rich Text ContentEditable */
+    /* Rich Text ContentEditable */
     #propText { 
       border: 1.5px solid var(--input-border); border-radius: 0 0 6px 6px; padding: 8px; 
       font-size: 10pt; font-family: Arial, sans-serif; background: #ffffff; 
@@ -314,7 +316,6 @@
                     <button class="fmt-btn" id="fmtVB" onclick="updateFormat('valign', 'bottom')" title="Vertical Align Bottom"><i class="ti ti-layout-align-bottom"></i></button>
                   </div>
                 </div>
-                <!-- Replaced textarea with contenteditable div for Rich Text -->
                 <div id="propText" contenteditable="true" oninput="updateSelectedElement()" onblur="pushHistory()"></div>
               </div>
               
@@ -820,8 +821,6 @@
         let cFormat = defaultFormat(); cFormat.align = 'center'; cFormat.valign = 'middle';
         state.elements.push({ id: generateId(), type: 'box', x: m + safeW/2 - cw/2, y: m + safeH/2 - ch/2, w: cw, h: ch, label: '', labelAlign: 'left', text: '', bgStyle: 'none', lineSize: lSz, gridSize: gSz, showBorder: true, borderWidth: 2, format: cFormat });
       } else if (type === 'lab') {
-        
-        // Dynamically scaled Lab Protocol layout based on 6.25" x 8.5" proportion (safe canvas: 552 x 768) mapped directly to user layout
         const col1W = safeW * (392/552); 
         const col2W = safeW * (136/552); 
         const leftX = m + (safeW * (8/552));
@@ -1011,7 +1010,6 @@
               else if (/^[a-z]$/.test(m)) nextMarker = String.fromCharCode(m.charCodeAt(0) + 1);
             }
             
-            // FIX: Use insertHTML with &nbsp; to preserve trailing space and ensure proper caret placement after <br>
             document.execCommand('insertHTML', false, '<br>' + nextMarker + sep.replace(/ /g, '&nbsp;'));
           }
           updateSelectedElement();
@@ -1022,7 +1020,6 @@
 
     document.addEventListener('keydown', function(e) {
       const tag = document.activeElement.tagName.toLowerCase();
-      // Ignore keydown delete on contenteditable so it deletes text, not the canvas element
       if (tag === 'input' || tag === 'textarea' || tag === 'select' || document.activeElement.isContentEditable) return;
 
       const isMac = navigator.userAgent.indexOf('Mac OS X') != -1;
@@ -1394,7 +1391,6 @@
       if (!html) return [];
       const div = document.createElement('div');
       
-      // Clean block elements to preserve line breaks
       let cleanHtml = html.replace(/<div[^>]*><br><\/div>/gi, '\n');
       cleanHtml = cleanHtml.replace(/<div[^>]*>/gi, '\n');
       cleanHtml = cleanHtml.replace(/<\/div>/gi, '');
@@ -1403,7 +1399,6 @@
       cleanHtml = cleanHtml.replace(/<br[^>]*>/gi, '\n');
       cleanHtml = cleanHtml.replace(/&nbsp;/gi, ' ');
       
-      // Strip leading and trailing newlines from contenteditable wrapping
       cleanHtml = cleanHtml.replace(/^\n+/, '').replace(/\n+$/, '');
 
       div.innerHTML = cleanHtml;
@@ -1462,7 +1457,6 @@
               const textPart = parts[p];
               if (!textPart) continue;
 
-              // Handle automatic indenting for standard list markers
               if (isFirstLineOfBlock && currentLine.segments.length === 0) {
                   const match = textPart.match(/^([•☐]\s+|[IVXLCDMivxlcdm]+\.\s+|[A-Za-z]\.\s+|[0-9]+\.\s+)/);
                   if (match) {
@@ -1518,7 +1512,7 @@
         else if (elFormat.valign === 'bottom') yOffset = Math.max(0, availH - totalH);
 
         ctx.textBaseline = 'alphabetic';
-        let curY = startY + yOffset + baseSize; // Top coordinate to alphabetic baseline
+        let curY = startY + yOffset + baseSize;
 
         lines.forEach(line => {
             let curX = startX + line.indent;
@@ -1537,7 +1531,6 @@
                 let size = baseSize;
                 let yShift = 0;
                 
-                // Scale subscript and superscript mathematically 
                 if (seg.format.sup) { size = Math.round(baseSize * 0.75); yShift = -baseSize * 0.35; }
                 if (seg.format.sub) { size = Math.round(baseSize * 0.75); yShift = baseSize * 0.25; }
                 
@@ -1547,7 +1540,6 @@
                 ctx.fillText(seg.text, curX, curY + yShift);
                 const tw = ctx.measureText(seg.text).width;
 
-                // Rich Text lines rendering (underlines / strikethroughs)
                 if (seg.format.underline || elFormat.underline || seg.format.strike || elFormat.strike) {
                     ctx.beginPath();
                     const ly = (seg.format.strike || elFormat.strike) ? (curY + yShift - size*0.25) : (curY + yShift + size*0.15);
@@ -1562,7 +1554,7 @@
             curY += lineHeight;
         });
         
-        ctx.textBaseline = 'top'; // Reset for rest of app
+        ctx.textBaseline = 'top';
     }
 
     function drawCanvas() {
@@ -1741,7 +1733,6 @@
     loadSettings(); 
     handlePaperSizeChange(false);
     
-    // Save initial state to history stack
     setTimeout(() => {
       const logicalW = Math.max(8.5, state.paper.widthInches) * DPI;
       const wZoom = (viewport.clientWidth - 80) / logicalW;
